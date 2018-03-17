@@ -4,8 +4,8 @@ var ServerConnection=function(){
 
 ServerConnection.prototype.openid="123456";
 ServerConnection.prototype.ip = "http://192.168.2.103:3000";
-ServerConnection.prototype.wsServer = "ws://192.168.2.103:9300/";
-//ServerConnection.prototype.wsServer = "ws://47.96.188.12:9500/";
+ServerConnection.prototype.wsServer = "ws://192.168.2.103:9300";
+//ServerConnection.prototype.wsServer = "ws://47.96.188.12:9500";
 ServerConnection.prototype.svc_websocket = null;
 
 ServerConnection.prototype.xmlHttpRequest=function(url,callback)
