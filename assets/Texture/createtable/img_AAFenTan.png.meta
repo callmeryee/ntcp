@@ -1,0 +1,30 @@
+{
+  "ver": "1.0.0",
+  "uuid": "bdf0d54e-0b23-4ef3-ba78-0b2cfba698af",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "subMetas": {
+    "img_AAFenTan": {
+      "ver": "1.0.3",
+      "uuid": "3475c692-c850-47f1-ba4c-6dab10f919a8",
+      "rawTextureUuid": "bdf0d54e-0b23-4ef3-ba78-0b2cfba698af",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 2.5,
+      "offsetY": 0,
+      "trimX": 13,
+      "trimY": 2,
+      "width": 122,
+      "height": 35,
+      "rawWidth": 143,
+      "rawHeight": 39,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}
