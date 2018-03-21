@@ -455,7 +455,7 @@ cc.Class({
     },
 
     get_hupai_msg:function(json){
-
+        this.hide_buttons();
     },
 
     get_balance_msg:function(json){
@@ -695,6 +695,10 @@ cc.Class({
         if(this.my_turn)
            this.clients[2].cardmanager.can_move = true;
         this.hide_buttons();
+    },
+
+    back_btn_onclick:function(){
+        server_connection.svc_closePlatform();
     },
 
     hide_buttons:function(){

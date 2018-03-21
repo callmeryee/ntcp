@@ -41,7 +41,7 @@ cc.Class({
     },
 
     close:function () {
-        this.node.active = false;
+        Global.disappear_action(this.node);
     },
 
     num_onclick:function(num){

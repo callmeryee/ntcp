@@ -1729,7 +1729,7 @@
     "node": {
       "__id__": 44
     },
-    "_enabled": true,
+    "_enabled": false,
     "_useOriginalSize": false,
     "_actualFontSize": 20,
     "_fontSize": 20,
@@ -1751,7 +1751,7 @@
     "node": {
       "__id__": 43
     },
-    "_enabled": true,
+    "_enabled": false,
     "_spriteFrame": {
       "__uuid__": "f0048c10-f03e-4c97-b9d3-3506e1d58952"
     },

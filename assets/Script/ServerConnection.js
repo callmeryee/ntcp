@@ -3,10 +3,18 @@ var ServerConnection=function(){
 }
 
 ServerConnection.prototype.openid="123456";
-ServerConnection.prototype.ip = "http://192.168.2.103:3000";
-ServerConnection.prototype.wsServer = "ws://192.168.2.103:9300";
-//ServerConnection.prototype.wsServer = "ws://47.96.188.12:9500";
+
+// ServerConnection.prototype.ip = "http://192.168.2.103:3000";
+//ServerConnection.prototype.wsServer = "ws://192.168.2.103:9300";
+
+ServerConnection.prototype.ip = "http://ntcp.wohnb.com/ntcp";
+ServerConnection.prototype.wsServer = "ws://ntcp.wohnb.com:9500";
+
 ServerConnection.prototype.svc_websocket = null;
+
+ServerConnection.prototype.check_connect_count = 0;
+ServerConnection.prototype.max_check_connect_count = 3;
+ServerConnection.prototype.connected = false;
 
 ServerConnection.prototype.xmlHttpRequest=function(url,callback)
 {
@@ -60,6 +68,8 @@ ServerConnection.prototype.svc_connectPlatform=function() {
         return;
     }
     var self=this;
+    this.check_connect_count += 1;
+    this.connected = false;
     this.svc_websocket.onopen = (evt)=>{self.svc_onOpen(evt);};
     this.svc_websocket.onclose = (evt)=>{self.svc_onClose(evt);};
     this.svc_websocket.onmessage = (evt)=>{self.svc_onMessage(evt);};
@@ -75,16 +85,28 @@ ServerConnection.prototype.svc_closePlatform=function() {
 
 ServerConnection.prototype.svc_onOpen = function(evt) {
     Global.log("Connected to WebSocket server.");
+    this.check_connect_count = 0;
+    this.connected = true;
     this.svc_send(CLIENT_MSG.CM_ENTER_ROOM,{room_uid:Global.room_uid});
 }
 
 ServerConnection.prototype.svc_onClose = function(evt) {
     Global.log("Disconnected");
     this.svc_websocket = null;
-    Global.leave_room();
+    if(this.check_connect_count<=this.max_check_connect_count&&!this.connected)
+    {
+        this.svc_connectPlatform();
+    }
+    else
+        Global.leave_room();
 }
 
 ServerConnection.prototype.svc_onMessage = function(evt) {
+    if(this.disconnect_count<=this.max_disconnect_count||this.error_disconnect)
+    {
+        this.disconnect_count = this.max_disconnect_count+1;
+        this.error_disconnect = false;
+    }
     var data = JSON.parse(evt.data);
     var json={id:data[0],msg:data[1]};
     Global.log(SERVER_MSG[json.id]+": "+JSON.stringify(json.msg));
@@ -153,7 +175,9 @@ ServerConnection.prototype.svc_onMessage = function(evt) {
     }
 }
 ServerConnection.prototype.svc_onError = function(evt) {
-    Global.log("Error occured: ");
+    for ( var p in evt) {
+        Global.log(p + "=" + evt[p]);
+    }
 }
 
 ServerConnection.prototype.svc_send = function() { 

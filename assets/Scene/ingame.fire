@@ -10004,9 +10004,11 @@
   },
   {
     "__type__": "cc.ClickEvent",
-    "target": null,
-    "component": "",
-    "handler": "",
+    "target": {
+      "__id__": 3
+    },
+    "component": "InGame",
+    "handler": "back_btn_onclick",
     "customEventData": ""
   },
   {

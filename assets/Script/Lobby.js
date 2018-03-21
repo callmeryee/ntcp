@@ -22,6 +22,7 @@ cc.Class({
 		enter_room_table:cc.Node,
 		rule_table:cc.Node,
 		setting_table:cc.Node,
+
 	},
 
 
@@ -35,16 +36,16 @@ cc.Class({
 	},
 
 	start () {
-        Global.soundmanager.play_music();
+		Global.soundmanager.play_music();
 	},
 
 
     create_room_btn_onclick:function(){
-		this.create_table.active = true;
+		Global.appear_action(this.create_table);
 	},
 
 	enter_room_btn_onclick:function(){
-		this.enter_room_table.active = true;
+		Global.appear_action(this.enter_room_table);
 	},
 
 	rule_btn_onclick:function(){
