@@ -80,21 +80,24 @@ cc.Class({
                 var node_hushu=item.getChildByName('hushu');
                 node_hushu.getChildByName('Label').getComponent(cc.Label).string = data2.score;
                 var node_paixing = item.getChildByName('paixing');
-                var paixing_list = [];
-                var type2 = data2.type2;
-                paixing_list.push(HuType[type2]);
-                var type1 = data2.type1;
-                for(var i = 0;i<8;i++)
-                {
-                    if(((type1>>i)&1)>0)
-                    {           
-                        paixing_list.push(HuPaiType[i+1]);
-                    }
-                }  
                 var paixing_string = "";
-                for(var i = 0;i<paixing_list.length;i++)
+                if(data2.type1 && data2.type2)
                 {
-                    paixing_string+=paixing_list[i]+" ";
+                    var paixing_list = [];
+                    var type2 = data2.type2;
+                    paixing_list.push(HuType[type2]);
+                    var type1 = data2.type1;
+                    for(var k = 0;k<8;k++)
+                    {
+                        if(((type1>>k)&1)>0)
+                        {           
+                            paixing_list.push(HuPaiType[k+1]);
+                        }
+                    }  
+                    for(var k = 0;k<paixing_list.length;k++)
+                    {
+                        paixing_string+=paixing_list[k]+" ";
+                    }
                 }
                 node_paixing.getChildByName('Label').getComponent(cc.Label).string = paixing_string;
                 var node_shoupai = item.getChildByName('node_shoupai');

@@ -31,11 +31,10 @@ cc.Class({
 
 
     create_box:function (text) {
-        console.log(text);
         var obj = cc.instantiate(this.clone);
         var close = obj.getChildByName("close");
         close.on(cc.Node.EventType.MOUSE_UP,function(event){
-            console.log(this.destroy());
+           this.destroy();
         },obj);
         obj.getChildByName("text").getComponent(cc.Label).string = text;
         obj.parent = this.node;

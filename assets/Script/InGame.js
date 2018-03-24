@@ -134,7 +134,6 @@ cc.Class({
 
         }
 
-        this.create_clients();
         for(var i = 0;i<this.clients.length;i++)
         {
             this.set_out_data(this.clients[i],[]);
@@ -144,6 +143,13 @@ cc.Class({
        
         this.hide_buttons();
         this.set_middle_card_data(null);
+
+        this.set_room_info();
+
+    },
+
+    set_room_info(){
+        this.create_clients();
     },
 
     set_card_left:function(num){

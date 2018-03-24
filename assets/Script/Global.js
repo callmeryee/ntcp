@@ -136,8 +136,12 @@ var Global = {
         this.room_data = json;
         if(this.ingame==null)
            this.loadScene('ingame');
+        else if(json.self)
+        {
+           this.ingame.init_ingame_ui(); 
+        }
         else
-           this.ingame.init_ingame_ui();
+           this.ingame.set_room_info();   
     },
 
     on_ready_game_msg:function(json){

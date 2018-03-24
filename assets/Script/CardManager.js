@@ -111,12 +111,13 @@ cc.Class({
         {
             for(i = data_num;i<num;i++)
             {
-                node.children[i].destroy();
+                node.children[i].active = false;
             }
         }   
         for(var i = 0;i<data_num;i++)
         {
             this.set_node_data(node.children[i],data[i]);
+            node.children[i].active = true;
         }
     },
 
@@ -157,12 +158,13 @@ cc.Class({
         {
             for(i = data_num;i<num;i++)
             {
-                node.children[i].destroy();
+                node.children[i].active = false;
             }
         }   
         for(var i = 0;i<data_num;i++)
         {
             this.set_node_data2(node.children[i],data2[i]);
+            node.children[i].active = true;
         }
     },
 

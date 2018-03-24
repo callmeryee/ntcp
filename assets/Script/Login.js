@@ -14,7 +14,9 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-
+        address_node:cc.Node,
+        http_address:cc.EditBox,
+        ws_address:cc.EditBox,
     },
 
     onLoad () {
@@ -25,6 +27,18 @@ cc.Class({
        // cc.director.loadScene('lobby');
        server_connetcion.login();
     },
+     
+    show_address_btn_onclick:function(){
+        this.address_node.active = true;
+    },
 
+    address_confirm_onclick:function(){    
+        server_connetcion.ip = this.http_address.string;
+        server_connetcion.wsServer = this.ws_address.string;
+    },
+
+    address_cancle_onclick:function(){
+        this.address_node.active = false;
+    },
 
 });
