@@ -4,11 +4,11 @@ var ServerConnection=function(){
 
 ServerConnection.prototype.openid="123456";
 
-// ServerConnection.prototype.ip = "http://192.168.2.103:3000";
-//ServerConnection.prototype.wsServer = "ws://192.168.2.103:9300";
+ServerConnection.prototype.ip = "http://192.168.2.103:9800/public";
+ServerConnection.prototype.wsServer = "ws://192.168.2.103:9300";
 
-ServerConnection.prototype.ip = "http://ntcp.wohnb.com/ntcp";
-ServerConnection.prototype.wsServer = "ws://ntcp.wohnb.com:9500";
+// ServerConnection.prototype.ip = "http://ntcp.wohnb.com/ntcp";
+// ServerConnection.prototype.wsServer = "ws://ntcp.wohnb.com:9500";
 
 ServerConnection.prototype.svc_websocket = null;
 
@@ -34,7 +34,7 @@ ServerConnection.prototype.xmlHttpRequest=function(url,callback)
 }
 
 ServerConnection.prototype.login = function(){
-    var url = this.ip + "/getUserInfo?openid="+this.openid;
+    var url = this.ip + "/getUserInfo?data="+JSON.stringify({openid:this.openid});
     this.xmlHttpRequest(url,function(respone){
         var json = JSON.parse(respone);
         Global.init_login(json);
@@ -42,7 +42,7 @@ ServerConnection.prototype.login = function(){
 }
 
 ServerConnection.prototype.create_room = function(openid){
-    var url = this.ip + "/createRoom?openid="+this.openid;
+    var url = this.ip + "/createRoom?data="+JSON.stringify({openid:this.openid});
     this.xmlHttpRequest(url,function(respone){
         var json = JSON.parse(respone);
         Global.init_room(json);
