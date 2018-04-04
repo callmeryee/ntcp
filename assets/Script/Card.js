@@ -28,6 +28,7 @@ cc.Class({
            {
                 Global.ingame.check_buttons([0]);
                 card_manager.select_card = card.own.children.indexOf(this);
+                card_manager.cur_card =  this.getComponent("Card");
                 card_manager.reset_shoupai_list();
                 this.parent = card_manager.node;
                 this.x*=card.own.scaleX;
@@ -85,6 +86,32 @@ cc.Class({
         }
     },
 
+    touch_end2:function()
+    {
+        var card = this.getComponent("Card");
+        var card_manager = card.own.parent.getComponent("CardManager");
+        if(card_manager.can_move)
+        {
+             Global.ingame.check_buttons([0]);
+             card_manager.select_card = card.own.children.indexOf(this);
+             card_manager.cur_card =  this.getComponent("Card");
+             card_manager.reset_shoupai_list();
+             this.parent = card_manager.node;
+             this.x*=card.own.scaleX;
+             this.x-=card.own.x;
+             this.y*=card.own.scaleY;
+             this.y-=card.own.y;
+             card.start_pos_x = this.x;
+             card.start_pos_y = this.y;
+        }
+
+
+        var node = this.node;
+        var card = node.getComponent("Card");
+        var t = (Math.abs(node.x)/600)*0.2;
+        card.card_finish(t);
+    },
+
     card_finish:function(t){
         if(this.data == null)
         {
@@ -94,7 +121,8 @@ cc.Class({
         var card_manager = this.own.parent.getComponent("CardManager");
         var finish = cc.callFunc(function(){
             this.node.destroy();
-            card_manager.select_card=-1;
+            card_manager.select_card = -1;
+            card_manager.cur_card = null;
             card_manager.check_shoupai_list();
             var card_out_middle = Global.ingame.card_out_middle;
             Global.ingame.set_card_data2(card_out_middle,this.data.tag);

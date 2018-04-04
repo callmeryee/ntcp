@@ -35,6 +35,7 @@ cc.Class({
 
         select_card:-1,
         can_move:false,
+        cur_card:null,
     },
 
     set_list_shoupai:function(list){
@@ -43,6 +44,7 @@ cc.Class({
         this.create_nodes(this.node_shoupai,this.clone_shoupai,this.pai_list_shoupai);
         this.set_paddingLeft();
         this.select_card = -1;
+        this.cur_card = null;
         this.check_shoupai_list();
     },
 
@@ -208,6 +210,17 @@ cc.Class({
         server_connection.svc_send(CLIENT_MSG.CM_CHU_PAI,{pai:value});
     },
 
+
+    send_chupai_msg2: function () {
+        console.log(this.cur_card);
+        if (this.select_card < 0 || this.select_card >= this.node_shoupai.children.length||this.cur_card == null)
+            return;
+        var card = this.cur_card;
+        if (card == null || card.data == null)
+            return;
+            console.log(this.cur_card);
+        card.touch_end2();
+    },
     
 
     start () {

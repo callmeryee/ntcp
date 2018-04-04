@@ -7722,7 +7722,7 @@
       }
     ],
     "_tag": -1,
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 186
@@ -10010,7 +10010,23 @@
     "_enabled": true,
     "close_btn": {
       "__id__": 228
-    }
+    },
+    "node_totle": {
+      "__id__": 102
+    },
+    "node_multiple": {
+      "__id__": 130
+    },
+    "node_xipai": {
+      "__id__": 170
+    },
+    "node_pay": {
+      "__id__": 190
+    },
+    "totle": null,
+    "multiple": null,
+    "xipai": null,
+    "pay": null
   },
   {
     "__type__": "cc.Node",

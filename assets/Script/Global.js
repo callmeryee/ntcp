@@ -20,56 +20,59 @@ var Global = {
 
     appear_action:function(node)
     {
-        node.y=700;
+        // node.y=700;
+        // node.active = true;
+        // var action = cc.sequence(
+        //     cc.moveTo(0.3, 0,0),
+        //     cc.spawn(
+        //        cc.moveTo(0.2, 0,50),
+        //        cc.rotateTo(0.2,-3)
+        //     ),
+        //     cc.spawn(
+        //         cc.moveTo(0.2, 0,0),
+        //         cc.rotateTo(0.2,0)
+        //     ),
+        //     cc.spawn(
+        //         cc.moveTo(0.15, 0,25),
+        //         cc.rotateTo(0.15,3)
+        //     ),
+        //     cc.spawn(
+        //         cc.moveTo(0.1, 0,0),
+        //         cc.rotateTo(0.1,0)
+        //     )
+        // ).speed(2);
+        // node.runAction(action);
+        node.y=0;
         node.active = true;
-        var action = cc.sequence(
-            cc.moveTo(0.3, 0,0),
-            cc.spawn(
-               cc.moveTo(0.2, 0,50),
-               cc.rotateTo(0.2,-3)
-            ),
-            cc.spawn(
-                cc.moveTo(0.2, 0,0),
-                cc.rotateTo(0.2,0)
-            ),
-            cc.spawn(
-                cc.moveTo(0.15, 0,25),
-                cc.rotateTo(0.15,3)
-            ),
-            cc.spawn(
-                cc.moveTo(0.1, 0,0),
-                cc.rotateTo(0.1,0)
-            )
-        ).speed(2);
-        node.runAction(action);
     },
 
     disappear_action:function(node,callback)
     {
-        var finish = cc.callFunc(function() {
-            node.active = false;
-        });
-        var action = cc.sequence(
-            cc.spawn(
-                cc.moveTo(0.15, 0,25),
-                cc.rotateTo(0.15,3)
-            ),
-            cc.spawn(
-                cc.moveTo(0.1, 0,0),
-                cc.rotateTo(0.1,0)
-            ),
-            cc.spawn(
-                cc.moveTo(0.2, 0,50),
-                cc.rotateTo(0.2,-3)
-            ),
-            cc.spawn(
-                cc.moveTo(0.2, 0,0),
-                cc.rotateTo(0.2,0)
-            ),
-            cc.moveTo(0.3, 0,700),
-            finish
-        ).speed(2);
-        node.runAction(action);
+        // var finish = cc.callFunc(function() {
+        //     node.active = false;
+        // });
+        // var action = cc.sequence(
+        //     cc.spawn(
+        //         cc.moveTo(0.15, 0,25),
+        //         cc.rotateTo(0.15,3)
+        //     ),
+        //     cc.spawn(
+        //         cc.moveTo(0.1, 0,0),
+        //         cc.rotateTo(0.1,0)
+        //     ),
+        //     cc.spawn(
+        //         cc.moveTo(0.2, 0,50),
+        //         cc.rotateTo(0.2,-3)
+        //     ),
+        //     cc.spawn(
+        //         cc.moveTo(0.2, 0,0),
+        //         cc.rotateTo(0.2,0)
+        //     ),
+        //     cc.moveTo(0.3, 0,700),
+        //     finish
+        // ).speed(2);
+        // node.runAction(action);
+        node.active = false;
     },
 
 

@@ -16,6 +16,7 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
+        data_hu:null,
         data:null,
         clone_shoupai:cc.Node,
         clone_dipai:cc.Node,
@@ -25,7 +26,11 @@ cc.Class({
         back_btn:cc.Node,
         share_btn:cc.Node,
     },
-
+ 
+    set_hupai_data:function(data)
+    {
+       this.data_hu = data;
+    },
 
     set_balance_data:function(data){
        this.data = data;
@@ -78,7 +83,7 @@ cc.Class({
                 var name = info.getChildByName('name').getComponent(cc.Label);
                 name.string = client.name.string;
                 var node_hushu=item.getChildByName('hushu');
-                node_hushu.getChildByName('Label').getComponent(cc.Label).string = data2.score;
+                node_hushu.getChildByName('Label').getComponent(cc.Label).string = data2.score+"胡";
                 var node_paixing = item.getChildByName('paixing');
                 var paixing_string = "";
                 if(data2.type1 && data2.type2)
@@ -102,9 +107,23 @@ cc.Class({
                 node_paixing.getChildByName('Label').getComponent(cc.Label).string = paixing_string;
                 var node_shoupai = item.getChildByName('node_shoupai');
                 var node_dipai = item.getChildByName('node_dipai');
-                var node_xipai = item.getChildByName('xipai');
+                var node_xipai = item.getChildByName('node_xipai');
+        
                 this.set_dipai_data(node_xipai,node_dipai,data2.di);
                 this.set_shoupai_data(node_shoupai,node_dipai,data2.shou);
+
+                var win_type = item.getChildByName('win_type').getComponent(cc.Label);
+                win_type.string = ""; 
+                if (this.data_hu != null) {
+                    if (this.data_hu.uid == data2.uid) {
+                        if (this.data_hu.uid2 == data2.uid)
+                            win_type.string = "自摸";
+                    }
+                    else {
+                        if (this.data_hu.uid2 == data2.uid)
+                            win_type.string = "点炮";
+                    }
+                }
             }
             else
             {
@@ -141,7 +160,8 @@ cc.Class({
             else
             data_common.push(list[i]);
         }
-        node_xipai.getChildByName('Label').getComponent(cc.Label).string = data_xipai.length;
+        var pai_list_xipai = common.get_pai_list(data_xipai);
+        this.create_nodes(node_xipai,this.clone_shoupai,pai_list_xipai);
         var pai_list_dipai = common.get_pai_list(data_common);
         this.create_nodes2(node_dipai,this.clone_dipai,pai_list_dipai);
     },

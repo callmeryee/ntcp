@@ -305,7 +305,7 @@ cc.Class({
             var bts = [];
             if(this.check_hu(list))
                 bts.push(3);
-            if(this.check_gang_list(list))
+            if(this.check_gang_list())
                 bts.push(2);     
             if(bts.length>0)
             {
@@ -355,8 +355,7 @@ cc.Class({
         if(json.uid == Global.uid)
         {
             this.my_turn = true;
-
-            var value = json.pai;
+            var value = json.pai;        
             this.push_shoupai_data(client,value);
         }
         else
@@ -365,7 +364,6 @@ cc.Class({
         }
         client.setNum(json.size1);
         this.set_card_left(json.size2);
-
     },
 
 
@@ -462,6 +460,8 @@ cc.Class({
 
     get_hupai_msg:function(json){
         this.hide_buttons();
+        var bc = this.balance.getComponent("BalanceControl");
+        bc.set_hupai_data(json);
     },
 
     get_balance_msg:function(json){
@@ -471,12 +471,19 @@ cc.Class({
     },
 
     check_hu:function(list){
-        var ret = common.check_win(list);
-        if(ret.length>0)
-        {
-            //console.log(ret);
+        if (list.length == 2) {
+            var pai1 = common.get_pai(list[0]);
+            var pai2 = common.get_pai(list[1]);
+            if (pai1.type == pai2.type && pai1.value == pai2.value)
+                return true;
         }
-        return ret.length>0;
+        else {
+            var ret = common.check_win(list);
+            if (ret.length > 0) {
+                //console.log(ret);
+            }
+            return ret.length > 0;
+        }
     },
 
     check_peng:function(value){
@@ -505,26 +512,39 @@ cc.Class({
         }
         return count == 3;
     },
+    
+    
+    check_gang_list:function(){
+        var new_pai = common.get_pai(this.new_card_data);
+        var shoupai_list = this.clients[2].cardmanager.pai_list_shoupai;
+        var dipai_list = this.clients[2].cardmanager.pai_list_dipai;
 
-    check_gang_list:function(list){
-        var len = list.length;
+        var len = dipai_list.length;
+        for(var i = 0;i<len;i++)
+        {
+            if(new_pai.type == dipai_list[i].type&&new_pai.value == dipai_list[i].value)
+            {
+                return true;
+            }
+        }
+         
+        var list = shoupai_list;
+        len = list.length;
         var count = 0;
         for(var i = 0;i<len;i++)
         {
-            for(var j = i+1;j<len;j++){
-                if(list[j].type == list[i].type && list[j].value == list[i].value){
-                    count++;
-                }
-            }
-            for(var j=0;j<i;j++)
+            count = 0;
+            for(var j = i+1;j<len;j++)
             {
-                if(list[j].type == list[i].type && list[j].value == list[i].value){
+                if((list[j].type == list[i].type) && (list[j].value == list[i].value))
+                {
                     count++;
                 }
             }
-            
+            if(count == 3)
+                return true;
         }  
-        return count == 3;
+        return false;
     },
 
     start_card_animation:function(uid,value){    
@@ -667,7 +687,7 @@ cc.Class({
     },
 
     invite_btn_onclick:function(){
-
+ 
     },
 
     menu_btn_show:function(){
@@ -679,7 +699,7 @@ cc.Class({
     },
     
     chupai_btn_onclick:function(){
-
+       // this.clients[2].cardmanager.send_chupai_msg2();
     },
 
     peng_btn_onclick:function(){
