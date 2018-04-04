@@ -34,7 +34,7 @@ ServerConnection.prototype.xmlHttpRequest=function(url,callback)
 }
 
 ServerConnection.prototype.login = function(){
-    var url = this.ip + "/getUserInfo?data="+JSON.stringify({openid:this.openid});
+    var url = this.ip + "/getUserInfo?data="+encodeURI(JSON.stringify({openid:this.openid}));
     this.xmlHttpRequest(url,function(respone){
         var json = JSON.parse(respone);
         Global.init_login(json);
@@ -42,7 +42,7 @@ ServerConnection.prototype.login = function(){
 }
 
 ServerConnection.prototype.create_room = function(v1,v2,v3,v4){
-    var url = this.ip + "/createRoom?data="+JSON.stringify({openid:this.openid,totle:arguments[0],multiple:arguments[1],xipai:arguments[2],pay:arguments[3]});
+    var url = this.ip + "/createRoom?data="+encodeURI(JSON.stringify({openid:this.openid,totle:arguments[0],multiple:arguments[1],xipai:arguments[2],pay:arguments[3]}));
     this.xmlHttpRequest(url,function(respone){
         var json = JSON.parse(respone);
         Global.init_room(json);
