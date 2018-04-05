@@ -111,6 +111,7 @@ var Common = function(){
             }
         }
         result(true);
+        console.log("last_node:~~~~~~~",last_node);
         last_node.check = last_node.check << 1;
         check(last_node);
     }

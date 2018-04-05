@@ -18,7 +18,7 @@
     "portrait": false,
     "upsideDown": false
   },
-  "packageName": "org.cocos2d.ntcp",
+  "packageName": "com.heretry.ntcp",
   "privateKey": "",
   "renderMode": "0",
   "startScene": "9a545281-2cb4-4876-8747-8b9666cf970d",

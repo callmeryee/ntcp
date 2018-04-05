@@ -48,6 +48,11 @@ cc.Class({
 		Global.appear_action(this.enter_room_table);
 	},
 
+	record_btn_onclick:function(){
+		
+       // server_connection.load_record();
+	},
+
 	rule_btn_onclick:function(){
 		this.rule_table.active = true;
 	},

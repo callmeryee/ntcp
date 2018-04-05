@@ -34,6 +34,8 @@ ServerConnection.prototype.xmlHttpRequest=function(url,callback)
 }
 
 ServerConnection.prototype.login = function(){
+    this.openid = "11111" +  Math.ceil(Math.random()*10);
+    Global.log("openid:" + this.openid);
     var url = this.ip + "/getUserInfo?data="+encodeURI(JSON.stringify({openid:this.openid}));
     this.xmlHttpRequest(url,function(respone){
         var json = JSON.parse(respone);
@@ -49,11 +51,20 @@ ServerConnection.prototype.create_room = function(v1,v2,v3,v4){
     })
 }
 
+// ServerConnection.prototype.load_record = function(){
+//     //var url = this.ip + "/createRoom?data="+encodeURI(JSON.stringify({openid:this.openid,totle:arguments[0],multiple:arguments[1],xipai:arguments[2],pay:arguments[3]}));
+//     var url = "/preview-scripts/assets/Script/record.text";
+//     this.xmlHttpRequest(url,function(respone){
+//         var json = JSON.parse(respone);
+//         console.log(json);
+//     })
+// }
+
 ServerConnection.prototype.enter_room = function(){
     if(this.svc_websocket == null)
        this.svc_connectPlatform();
     else
-       this.svc_send(CLIENT_MSG.CM_ENTER_ROOM,{room_uid:Global.room_uid});
+       this.svc_send(CLIENT_MSG.CM_ENTER_ROOM,{room_uid:Global.room_uid,openid:this.openid});
 }
 
 ServerConnection.prototype.svc_connectPlatform=function() {
@@ -87,7 +98,7 @@ ServerConnection.prototype.svc_onOpen = function(evt) {
     Global.log("Connected to WebSocket server.");
     this.check_connect_count = 0;
     this.connected = true;
-    this.svc_send(CLIENT_MSG.CM_ENTER_ROOM,{room_uid:Global.room_uid});
+    this.svc_send(CLIENT_MSG.CM_ENTER_ROOM,{room_uid:Global.room_uid,openid:this.openid});
 }
 
 ServerConnection.prototype.svc_onClose = function(evt) {
