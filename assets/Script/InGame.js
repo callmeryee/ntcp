@@ -699,7 +699,7 @@ cc.Class({
     },
     
     chupai_btn_onclick:function(){
-       // this.clients[2].cardmanager.send_chupai_msg2();
+        this.clients[2].cardmanager.send_chupai_msg2();
     },
 
     peng_btn_onclick:function(){

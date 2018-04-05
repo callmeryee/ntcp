@@ -212,13 +212,11 @@ cc.Class({
 
 
     send_chupai_msg2: function () {
-        console.log(this.cur_card);
         if (this.select_card < 0 || this.select_card >= this.node_shoupai.children.length||this.cur_card == null)
             return;
         var card = this.cur_card;
         if (card == null || card.data == null)
             return;
-            console.log(this.cur_card);
         card.touch_end2();
     },
     

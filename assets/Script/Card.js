@@ -28,7 +28,7 @@ cc.Class({
            {
                 Global.ingame.check_buttons([0]);
                 card_manager.select_card = card.own.children.indexOf(this);
-                card_manager.cur_card =  this.getComponent("Card");
+                card_manager.cur_card =  card;
                 card_manager.reset_shoupai_list();
                 this.parent = card_manager.node;
                 this.x*=card.own.scaleX;
@@ -88,21 +88,21 @@ cc.Class({
 
     touch_end2:function()
     {
-        var card = this.getComponent("Card");
+        var card = this;
         var card_manager = card.own.parent.getComponent("CardManager");
         if(card_manager.can_move)
         {
              Global.ingame.check_buttons([0]);
-             card_manager.select_card = card.own.children.indexOf(this);
-             card_manager.cur_card =  this.getComponent("Card");
+             card_manager.select_card = card.own.children.indexOf(card.node);
+             card_manager.cur_card =  card;
              card_manager.reset_shoupai_list();
-             this.parent = card_manager.node;
-             this.x*=card.own.scaleX;
-             this.x-=card.own.x;
-             this.y*=card.own.scaleY;
-             this.y-=card.own.y;
-             card.start_pos_x = this.x;
-             card.start_pos_y = this.y;
+             card.node.parent = card_manager.node;
+             card.node.x*=card.own.scaleX;
+             card.node.x-=card.own.x;
+             card.node.y*=card.own.scaleY;
+             card.node.y-=card.own.y;
+             card.start_pos_x = card.node.x;
+             card.start_pos_y = card.node.y;
         }
 
 
