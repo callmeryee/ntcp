@@ -119,20 +119,23 @@ cc.Class({
            return;
         }
         var card_manager = this.own.parent.getComponent("CardManager");
+        var data = this.data;
         var finish = cc.callFunc(function(){
             this.node.destroy();
             card_manager.select_card = -1;
             card_manager.cur_card = null;
             card_manager.check_shoupai_list();
             var card_out_middle = Global.ingame.card_out_middle;
-            Global.ingame.set_card_data2(card_out_middle,this.data.tag);
+            Global.ingame.set_card_data2(card_out_middle,data.tag);
+            Global.ingame.clear_time();
             card_out_middle.active = true;
+            //console.log("show card_out_middle(card card_finish)");
         },this);
         var action = cc.sequence(cc.moveTo(t,0,300),finish);
         this.node.runAction(action);
         card_manager.can_move = false;
-        Global.ingame.my_turn = false;
         Global.ingame.check_buttons([]);
+       // console.log("card_finish");
         card_manager.send_chupai_msg(this.data.tag);
     },
 

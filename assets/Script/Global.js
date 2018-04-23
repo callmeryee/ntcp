@@ -1,10 +1,27 @@
+import InGameManager from "./ingame/InGameManager";
 
 var server_connection = require("ServerConnection");
+var common = require("Common");
 var Global = {   
-    enter_room:false,
+
+    AppId:'wx278464a99e02e646',
+
+    server_connection:null,
+    common:null,
+
+    headimgurl:'',
+    headicon:null,
+
+    nickname:'游客',
+    unionid:null,
+    openid:null,
+    token:null,
     proxy:false,
     diamond:0,
     gold:0, 
+
+    enter_room:false,
+
     uid:null,
     room_uid:null,
     room_data:null,
@@ -77,36 +94,54 @@ var Global = {
 
 
     init_login:function(json){
-        if(json.error)
+        if(json.error!=null)
         {
             this.messagebox.create_box(json.error);
             return;
         }
-        this.proxy = json.proxy;
-        this.diamond = json.diamond;
-        this.gold = json.gold;
+        //console.log('用户信息:',json);
+        if(json.openid == null)
+        return;
+        if(json.headimgurl)
+           this.headimgurl = json.headimgurl;
+        if(json.nick)
+           this.nickname = json.nick;
+        this.openid = json.openid;
+        this.unionid = json.uid;
+        this.token = json.token;
+        this.proxy = json.isProxy;
+        this.diamond = json.diamondCount;
+        this.gold = json.goldCount;
+        Global.common = common;
         this.loadScene('lobby');  
     },
 
     init_room:function(json){
-        if(json.error)
+        if(json.error!=null)
         {
             this.messagebox.create_box(json.error);
             return;
         }
+        if(json.roomid == null)
+        return;
         this.room_uid = json.roomid;
+        if(json.goldCount)
+           this.gold = json.goldCount;
+        if(json.diamondCount)
+           this.diamond = json.diamondCount;
+        this.lobby.setMoney();   
         if(this.enter_room)
         {
             server_connection.enter_room();
         }
         else
         {
-
+            this.messagebox.create_box('房间号:'+this.room_uid);
         }
     },
 
     leave_room:function(){
-        this.ingame = null;
+        //this.ingame = null;
         this.loadScene("lobby");
     },
 
@@ -137,102 +172,114 @@ var Global = {
         if(json.self)
            this.uid = json.self;
         this.room_data = json;
-        if(this.ingame==null)
-           this.loadScene('ingame');
+        if(InGameManager.instance==null)
+        {
+           Global.server_connection = server_connection;
+           this.loadScene('ingame2');
+        }
         else if(json.self)
         {
-           this.ingame.init_ingame_ui(); 
+            InGameManager.instance.init_game(); 
         }
         else
-           this.ingame.set_room_info();   
+            InGameManager.instance.set_room_info();   
     },
 
-    on_ready_game_msg:function(json){
-        if(json.error)
-        {
-            this.messagebox.create_box(json.error);
-            return;
-        }
-        this.ingame.set_ready(json);
-    },
+    // on_ready_game_msg:function(json){
+    //     if(json.error)
+    //     {
+    //         this.messagebox.create_box(json.error);
+    //         return;
+    //     }
+    //     this.ingame.set_ready(json);
+    // },
 
-    on_start_game_msg:function(json){
-        if(json.error)
-        {
-            this.messagebox.create_box(json.error);
-            return;
-        }
-        this.ingame.get_start_game_msg(json);
-    },
+    // on_start_game_msg:function(json){
+    //     if(json.error)
+    //     {
+    //         this.messagebox.create_box(json.error);
+    //         return;
+    //     }
+    //     this.ingame.get_start_game_msg(json);
+    // },
 
-    on_huanpai_msg:function(json){
-        if(json.error)
-        {
-            this.messagebox.create_box(json.error);
-            return;
-        }
-        this.ingame.get_huanpai_msg(json);
-    },
+    // on_huanpai_msg:function(json){
+    //     if(json.error)
+    //     {
+    //         this.messagebox.create_box(json.error);
+    //         return;
+    //     }
+    //     this.ingame.get_huanpai_msg(json);
+    // },
 
-    on_mopai_msg:function(json){
-        if(json.error)
-        {
-            this.messagebox.create_box(json.error);
-            return;
-        }
-        this.ingame.get_mopai_msg(json);
-    },
+    // on_mopai_msg:function(json){
+    //     if(json.error)
+    //     {
+    //         this.messagebox.create_box(json.error);
+    //         return;
+    //     }
+    //     this.ingame.get_mopai_msg(json);
+    // },
 
-    on_chupai_msg:function(json){
-        if(json.error)
-        {
-            this.messagebox.create_box(json.error);
-            return;
-        }
-        this.ingame.get_chupai_msg(json);
-    },
+    // on_chupai_msg:function(json){
+    //     if(json.error)
+    //     {
+    //         this.messagebox.create_box(json.error);
+    //         return;
+    //     }
+    //     this.ingame.get_chupai_msg(json);
+    // },
 
-    on_gangpai_msg:function(json){
-        if(json.error)
-        {
-            this.messagebox.create_box(json.error);
-            return;
-        }
-        this.ingame.get_gangpai_msg(json);
-    },
+    // on_gangpai_msg:function(json){
+    //     if(json.error)
+    //     {
+    //         this.messagebox.create_box(json.error);
+    //         return;
+    //     }
+    //     this.ingame.get_gangpai_msg(json);
+    // },
 
-    on_pengpai_msg:function(json){
-        if(json.error)
-        {
-            this.messagebox.create_box(json.error);
-            return;
-        }
-        this.ingame.get_pengpai_msg(json);
-    },
+    // on_pengpai_msg:function(json){
+    //     if(json.error)
+    //     {
+    //         this.messagebox.create_box(json.error);
+    //         return;
+    //     }
+    //     this.ingame.get_pengpai_msg(json);
+    // },
 
-    on_hupai_msg:function(json){
-        if(json.error)
-        {
-            this.messagebox.create_box(json.error);
-            return;
-        }
-        this.ingame.get_hupai_msg(json);
-    },
+    // on_hupai_msg:function(json){
+    //     if(json.error)
+    //     {
+    //         this.messagebox.create_box(json.error);
+    //         return;
+    //     }
+    //     this.ingame.get_hupai_msg(json);
+    // },
 
-    on_balance_msg:function(json){
-        if(json.error)
-        {
-            this.messagebox.create_box(json.error);
-            return;
-        }
-        this.ingame.get_balance_msg(json);
-    },
+    // on_balance_msg:function(json){
+    //     if(json.error)
+    //     {
+    //         this.messagebox.create_box(json.error);
+    //         return;
+    //     }
+    //     this.ingame.get_balance_msg(json);
+    // },
 
     log:function(text) {
         this.logview.addMessage(text);
     },
     loadScene:function(name){
         cc.director.loadScene(name);
+    },
+
+    setIcon:function(url,icon){
+        if(url==''&&url==null)
+        return;
+        var imgurl = url + "?aa=aa.jpg";
+        cc.loader.load(imgurl, function (err, texture) {
+            icon.spriteFrame = new cc.SpriteFrame(texture);
+        });
     },
 }
 

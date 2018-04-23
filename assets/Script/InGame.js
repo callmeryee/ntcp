@@ -11,6 +11,8 @@
 var server_connection = require("ServerConnection");
 var common = require("Common");
 function client(){
+    this.is_self = null;
+    this.is_myturn = null;
     this.json = null;
     this.node = null;
     this.icon = null;
@@ -20,6 +22,7 @@ function client(){
     this.time_num = null;
     this.num = null;
     this.cardmanager = null;
+    this.time_action = null;
     this.initInfo = function(){
        if(this.json==null)
        {
@@ -41,6 +44,66 @@ function client(){
        }
     }
 
+    this.setMyTurn = function(tag,callback)
+    {
+        this.is_myturn = tag;
+        if(this.is_myturn)
+        {
+            this.setTime(15,callback);
+        }
+        else
+        {
+            this.setTime(0,null);
+        }
+    }
+
+    this.setTime = function(num,finish)
+    {
+        var count = num;
+        var self = this;
+        if(self.time_action)
+        {
+           clearTimeout(self.time_action);
+           self.time_action = null;
+        }
+        if(num == 0)
+        {
+            self.time_num.string = count.toString();
+            self.time.active = false;  
+            return;
+        }
+        else
+        {
+            self.time_num.string = count.toString();
+            self.time.active = true;  
+        }
+        var callback = function () {
+            count--;
+            if(self.time_action == null)
+            {
+                self.time_num.string = "";
+                self.time.active = false;  
+                return;
+            }
+            if (count < 0) {
+                self.time_num.string = count.toString();
+                self.time.active = false;  
+                if(self.is_self)
+                {
+                   if(finish)
+                      finish();
+                }
+            }
+            else
+            {
+                self.time_num.string = count.toString();
+                self.time.active = true;
+                self.time_action = setTimeout(callback,1000)
+                
+            }          
+        }
+        self.time_action = setTimeout(callback,1000);
+    }
  
     this.setState = function(state)
     {
@@ -63,8 +126,6 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
-
-        my_turn:false,
 
         middle_card_data:null,
         new_card_data:null,
@@ -131,7 +192,7 @@ cc.Class({
             this.clients[i].time = node.getChildByName("time");
             this.clients[i].time_num = this.clients[i].time.getChildByName("num").getComponent(cc.Label);
             this.clients[i].num = node.getChildByName("num").getComponent(cc.Label);
-
+            this.clients[i].is_self = (i==2);
         }
 
         for(var i = 0;i<this.clients.length;i++)
@@ -351,23 +412,32 @@ cc.Class({
 
 
     get_mopai_msg:function(json){
+
+        this.clear_all_time();
+
         var client = this.get_client(json.uid)
         if(json.uid == Global.uid)
         {
-            this.my_turn = true;
             var value = json.pai;        
             this.push_shoupai_data(client,value);
+            this.clients[2].cardmanager.can_move = true;
         }
         else
         {
 
         }
+
+        client.setMyTurn(true,this.auto_chupai);
+
         client.setNum(json.size1);
         this.set_card_left(json.size2);
     },
 
 
     get_chupai_msg:function(json){
+
+        this.clear_all_time();
+
         var client = this.get_client(json.uid);
         if(json.uid!=Global.uid)
         {
@@ -390,7 +460,8 @@ cc.Class({
                 bts.push(1);
             if(bts.length>0)
             {
-                bts.push(4);
+                bts.push(4);     
+                this.clients[2].setMyTurn(true,this.guo_btn_onclick);
                 this.check_buttons(bts);
             }
             else
@@ -417,6 +488,9 @@ cc.Class({
 
 
     get_huanpai_msg:function(json){
+
+        this.clear_all_time();
+
         var client = this.get_client(json.uid);
         if(json.uid == Global.uid)
         {
@@ -426,6 +500,9 @@ cc.Class({
     },
 
     get_gangpai_msg:function(json){
+
+        this.clear_all_time();
+
         var client = this.get_client(json.uid);
         if(json.uid == Global.uid)
         {
@@ -442,6 +519,9 @@ cc.Class({
     },
 
     get_pengpai_msg:function(json){
+
+        this.clear_all_time();
+
         var client = this.get_client(json.uid);
         if(json.uid == Global.uid)
         {
@@ -454,11 +534,17 @@ cc.Class({
         {
             client.setNum(json.size1);
         }
+
+        client.setMyTurn(true,this.auto_chupai);
+
         this.set_dipai_data(client,json.di);
         this.set_middle_card_data(null);
     },
 
     get_hupai_msg:function(json){
+
+        this.clear_all_time();
+
         this.hide_buttons();
         var bc = this.balance.getComponent("BalanceControl");
         bc.set_hupai_data(json);
@@ -564,7 +650,7 @@ cc.Class({
            start_pos = cc.p(620, -126);
            start_rot = -65;
         }
-
+        //console.log("hide card_out_middle(start_card_animation)");
         this.card_out_middle.active = false;
         var data = common.get_pai(value);
     
@@ -578,6 +664,7 @@ cc.Class({
             node.active = false;
             node.x = start_pos.x;
             node.y = start_pos.y;
+           // console.log("show card_out_middle(start_card_animation)");
             ingame.card_out_middle.active = true;
         },this);
         var action = cc.sequence(cc.moveTo(0.3,cc.p(0, 163)),cc.rotateTo(0.3,0),finish);
@@ -646,10 +733,13 @@ cc.Class({
             this.middle_card_data = data;
             var pai = common.get_pai(data.value);
             this.set_card_data(this.card_out_middle,pai);
+            this.card_out_middle.active = true;
         }
         else
         {
+
             this.middle_card_data = null;
+           // console.log("hide card_out_middle(set_middle_card_data)");
             this.card_out_middle.active = false;
         }
     },
@@ -698,8 +788,15 @@ cc.Class({
         this.menu_node.active = false;
     },
     
+    auto_chupai:function(){
+        var self = Global.ingame;
+        if(self.clients[2].is_myturn && self.clients[2].is_self)
+           self.clients[2].cardmanager.auto_chupai_msg(self.new_card_data);
+    },
+
     chupai_btn_onclick:function(){
-        this.clients[2].cardmanager.send_chupai_msg2();
+        if(this.clients[2].is_myturn)
+           this.clients[2].cardmanager.send_chupai_msg2();
     },
 
     peng_btn_onclick:function(){
@@ -717,10 +814,11 @@ cc.Class({
     },
 
     guo_btn_onclick:function(){
+        var self = Global.ingame;
         server_connection.svc_send(CLIENT_MSG.CM_RESPON_CHU_PAI,{type:PaiMessageResponse.RESULT_NONE});   
-        if(this.my_turn)
-           this.clients[2].cardmanager.can_move = true;
-        this.hide_buttons();
+        if(self.clients[2].is_myturn)
+           self.clients[2].cardmanager.can_move = true;
+        self.hide_buttons();
     },
 
     back_btn_onclick:function(){
@@ -729,6 +827,18 @@ cc.Class({
 
     hide_buttons:function(){
         this.check_buttons([]);
+    },
+
+    clear_all_time:function(){
+        var len = this.clients.length;
+        for(var i =0;i<len;i++)
+        {
+            this.clients[i].setMyTurn(false,null);   
+        }
+    },
+
+    clear_time:function(){
+        this.clients[2].setMyTurn(false,null);
     },
 
     //0:出牌 1：碰 2：杠 3：胡 4：过

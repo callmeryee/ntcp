@@ -8,7 +8,10 @@ cc.Class({
 	properties: {
 
 		player_name:cc.Label,
+		head_icon:cc.Sprite,
 		player_id:cc.Label,
+		diamond_label:cc.Label,
+		gold_label:cc.Label,
 
 		create_room_btn : cc.Button,
 		enter_room_btn : cc.Button,
@@ -26,9 +29,21 @@ cc.Class({
 	},
 
 
+	setLobbyInfo(){
+		this.player_name.string = Global.nickname;
+		this.setMoney();	
+		Global.setIcon(Global.headimgurl,this.head_icon);
+	},
+
+	setMoney(){
+		this.diamond_label.string = Global.diamond;
+		this.gold_label.string = Global.gold;
+	},
+
 	onLoad () {
 	    Global.lobby = this;
 		this.reset();
+		this.setLobbyInfo();
 	},
 
 	reset:function(){
@@ -48,9 +63,8 @@ cc.Class({
 		Global.appear_action(this.enter_room_table);
 	},
 
-	record_btn_onclick:function(){
-		
-       // server_connection.load_record();
+	record_btn_onclick:function(){		
+		cc.director.loadScene("ingame2");
 	},
 
 	rule_btn_onclick:function(){

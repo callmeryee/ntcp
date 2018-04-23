@@ -1,3 +1,4 @@
+import InGameManager from "./ingame/InGameManager";
 
 var ServerConnection=function(){
 }
@@ -29,25 +30,62 @@ ServerConnection.prototype.xmlHttpRequest=function(url,callback)
     if (cc.sys.isNative) {  
         xhr.setRequestHeader("Accept-Encoding", "gzip,deflate");  
     }  
-    xhr.timeout = 5000;
+    xhr.timeout = 5000;  
     xhr.send(); 
 }
 
-ServerConnection.prototype.login = function(){
-    this.openid = "11111" +  Math.ceil(Math.random()*10);
-    Global.log("openid:" + this.openid);
-    var url = this.ip + "/getUserInfo?data="+encodeURI(JSON.stringify({openid:this.openid}));
-    this.xmlHttpRequest(url,function(respone){
+
+ServerConnection.prototype.xmlHttpRequest2=function(url,data,callback)
+{
+    
+    var xhr = cc.loader.getXMLHttpRequest();  
+    xhr.onreadystatechange = function () {  
+        if (xhr.readyState === 4 && (xhr.status >= 200 && xhr.status < 300)) {  
+            var respone = xhr.responseText;  
+            callback(respone);  
+        }  
+    };  
+    xhr.open("POST", url, true);  
+    xhr.setRequestHeader("Content-Type", "application/json");
+   
+    xhr.timeout = 5000;   if (cc.sys.isNative) {  
+        xhr.setRequestHeader("Accept-Encoding", "gzip,deflate");  
+    }  
+    if(data!=null)
+      data = JSON.stringify(data);
+    xhr.send(data); 
+}
+
+
+
+ServerConnection.prototype.login = function(code,uid,check){
+    // this.openid = "11111" +  Math.ceil(Math.random()*10);
+    // Global.log("openid:" + this.openid);
+    var url = this.ip + "/getUserInfo";
+    var data = {code:code,uid:uid,checkCode:check};
+    this.xmlHttpRequest2(url,data,function(respone){
         var json = JSON.parse(respone);
+        //console.log(json);
         Global.init_login(json);
     })
 }
 
-ServerConnection.prototype.create_room = function(v1,v2,v3,v4){
-    var url = this.ip + "/createRoom?data="+encodeURI(JSON.stringify({openid:this.openid,totle:arguments[0],multiple:arguments[1],xipai:arguments[2],pay:arguments[3]}));
+ServerConnection.prototype.create_room = function(playCount,payType,balanceRate,includexi,forceNew){
+    var url = this.ip + "/getRoomCard";
+    var data = {uid:Global.unionid,playCount:playCount,payType:payType,balanceRate:balanceRate,includexi:includexi,forceNew:forceNew};
+    this.xmlHttpRequest2(url,data,function(respone){
+        var json = JSON.parse(respone);
+        console.log(json);
+        Global.init_room(json);
+    })
+}
+
+ServerConnection.prototype.random_user = function(){
+    var url = "http://192.168.2.103:9800/test/createRandomUser";
     this.xmlHttpRequest(url,function(respone){
         var json = JSON.parse(respone);
-        Global.init_room(json);
+        //console.log(json);
+        Global.init_login(json);
     })
 }
 
@@ -64,7 +102,7 @@ ServerConnection.prototype.enter_room = function(){
     if(this.svc_websocket == null)
        this.svc_connectPlatform();
     else
-       this.svc_send(CLIENT_MSG.CM_ENTER_ROOM,{room_uid:Global.room_uid,openid:this.openid});
+       this.svc_send(CLIENT_MSG.CM_ENTER_ROOM,{roomid:Global.room_uid,unionid:Global.unionid,nick:Global.nickname,imgurl:Global.headimgurl});
 }
 
 ServerConnection.prototype.svc_connectPlatform=function() {
@@ -98,7 +136,7 @@ ServerConnection.prototype.svc_onOpen = function(evt) {
     Global.log("Connected to WebSocket server.");
     this.check_connect_count = 0;
     this.connected = true;
-    this.svc_send(CLIENT_MSG.CM_ENTER_ROOM,{room_uid:Global.room_uid,openid:this.openid});
+    this.svc_send(CLIENT_MSG.CM_ENTER_ROOM,{roomid:Global.room_uid,unionid:Global.unionid,nick:Global.nickname,imgurl:Global.headimgurl});
 }
 
 ServerConnection.prototype.svc_onClose = function(evt) {
@@ -140,47 +178,56 @@ ServerConnection.prototype.svc_onMessage = function(evt) {
         break;
         case SERVER_MSG.SM_READY_GAME:
         {
-            Global.on_ready_game_msg(json.msg);
+            if(InGameManager.instance)
+               InGameManager.instance.on_ready_game_msg(json.msg);
         }
         break;
         case SERVER_MSG.SM_START_GAME:
         {
-            Global.on_start_game_msg(json.msg);
+            if(InGameManager.instance)
+               InGameManager.instance.on_start_game_msg(json.msg);
         }
         break;
         case SERVER_MSG.SM_HUAN_PAI:
         {
-            Global.on_huanpai_msg(json.msg);
+            if(InGameManager.instance)
+               InGameManager.instance.on_huanpai_msg(json.msg);
         }
         break;
         case SERVER_MSG.SM_MO_PAI:
         {
-            Global.on_mopai_msg(json.msg);
+            if(InGameManager.instance)
+               InGameManager.instance.on_mopai_msg(json.msg);
         }
         break;
         case SERVER_MSG.SM_CHU_PAI:
         {
-            Global.on_chupai_msg(json.msg);
+            if(InGameManager.instance)
+               InGameManager.instance.on_chupai_msg(json.msg);
         }
         break;
         case SERVER_MSG.SM_GANG_PAI:
         {
-            Global.on_gangpai_msg(json.msg);
+            if(InGameManager.instance)
+               InGameManager.instance.on_gangpai_msg(json.msg);
         }
         break;
         case SERVER_MSG.SM_PENG_PAI:
         {
-            Global.on_pengpai_msg(json.msg);
+            if(InGameManager.instance)
+               InGameManager.instance.on_pengpai_msg(json.msg);
         }
         break;
         case SERVER_MSG.SM_HU_PAI:
-        {
-            Global.on_hupai_msg(json.msg);
+        {        
+            if(InGameManager.instance)
+               InGameManager.instance.on_hupai_msg(json.msg);
         }
         break;
         case SERVER_MSG.SM_GAME_BALANCE:
         {
-            Global.on_balance_msg(json.msg);
+            if(InGameManager.instance)
+               InGameManager.instance.on_balance_msg(json.msg);
         }
         break;
     }
@@ -202,3 +249,4 @@ ServerConnection.prototype.svc_send = function() {
 }
 
 module.exports = new ServerConnection();
+

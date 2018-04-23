@@ -219,6 +219,40 @@ cc.Class({
             return;
         card.touch_end2();
     },
+
+    auto_chupai_msg:function(tag){
+        var card = this.get_card(tag);  
+        if(card == null)
+        {
+            var num = this.node_shoupai.childrenCount;
+            card = this.node_shoupai.children[num-1].getComponent("Card");
+        }
+       // console.log(card.data);
+        if(card!=null)
+        {
+            card.touch_end2();
+        }
+    },
+
+    get_card(tag)
+    {
+        var card = null;
+        var num = this.node_shoupai.childrenCount;
+        for(i=0;i<num;i++)
+        {
+            card = this.node_shoupai.children[i].getComponent("Card");
+            if(card.data!=null)
+            {
+               if(card.data.tag == tag)
+               {
+                   break;
+               }
+            }
+            card = null;
+        }
+        return card;
+
+    },
     
 
     start () {
