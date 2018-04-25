@@ -14,9 +14,8 @@ cc.Class({
     properties: {
         music:cc.AudioSource,
         sound:cc.AudioSource,
-
         audio_clips:null,
-
+        is_girl:true,
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -42,6 +41,36 @@ cc.Class({
             }
             self.play_music();
         });  
+
+        cc.loader.loadResDir('sound/girl', function (err, objects, urls) {
+            if (err) {
+                console.log(err.message || err);
+                return;
+            }
+            var len = objects.length;
+            for(var i =0;i<len;i++)
+            {
+                var obj = {};
+                obj.clip = objects[i];
+                obj.name = urls[i];
+                self.audio_clips.push(obj);
+            }
+        }); 
+
+        cc.loader.loadResDir('sound/common', function (err, objects, urls) {
+            if (err) {
+                console.log(err.message || err);
+                return;
+            }
+            var len = objects.length;
+            for(var i =0;i<len;i++)
+            {
+                var obj = {};
+                obj.clip = objects[i];
+                obj.name = urls[i];
+                self.audio_clips.push(obj);
+            }
+        });
   
     },
 
@@ -65,11 +94,96 @@ cc.Class({
         if(clip==null)
         return;
         this.music.clip = clip;
+        this.music.loop = true;
         this.music.play();
     },
 
-    play_sound:function(){
+    play_music_ingame:function(){
+        var clip = this.get_clip("music/bgm2");
+        if(clip==null)
+        return;
+        this.music.clip = clip;
+        this.music.loop = true;
+        this.music.play();
+    },
 
+    play_sound:function(name){
+        var clip = this.get_clip("sound/"+name);
+        if(clip==null)
+        return;
+        this.sound.clip = clip;
+        this.sound.play();
+    },
+
+    play_sound2:function(name){
+        var sound_name = this.is_girl_sound()+name;
+        this.play_sound(sound_name);
+    },
+
+    play_chupai_sound(tag) {
+        var pai = Global.common.get_pai(tag);
+        //console.log(pai.type + '~~~~~~~' + pai.value);
+        var sound_name = '';
+        switch (pai.type) {
+            case 1:
+                {
+                    sound_name = (pai.value - 1).toString();
+                }
+                break;
+            case 2:
+                {
+                    sound_name = (pai.value + 8).toString();
+                }
+                break;
+            case 3:
+                {
+                    sound_name = (pai.value + 17).toString();
+                }
+                break;
+            case 4:
+                {
+                    sound_name ='28';
+                }
+                break;
+            case 5:
+                {
+                    sound_name = '29';
+                }
+                break;
+            case 6:
+                {
+                    sound_name = '27';
+                }
+                break;
+
+        }
+        if (sound_name != '')
+        {
+            this.play_sound2(sound_name);
+        }
+    },
+
+    is_girl_sound(){
+        if(this.is_girl)
+        return 'girl/'
+        else
+        return 'boy/'
+    },
+
+    play_button_click(){
+        this.play_sound('common/button_click');
+    },
+
+    play_card_out(){
+        this.play_sound('common/outcard');
+    },
+
+    play_ready_sound(){
+        this.play_sound('common/ready');
+    },
+
+    play_timeup_sound(){
+        this.play_sound('common/timeup_alarm');
     },
 
     start () {

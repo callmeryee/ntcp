@@ -75,7 +75,7 @@ ServerConnection.prototype.create_room = function(playCount,payType,balanceRate,
     var data = {uid:Global.unionid,playCount:playCount,payType:payType,balanceRate:balanceRate,includexi:includexi,forceNew:forceNew};
     this.xmlHttpRequest2(url,data,function(respone){
         var json = JSON.parse(respone);
-        console.log(json);
+        //console.log(json);
         Global.init_room(json);
     })
 }

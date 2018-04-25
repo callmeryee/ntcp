@@ -59,6 +59,7 @@ cc.Class({
 	},
 
     login_onclick:function () {
+        Global.soundmanager.play_button_click();
         if (cc.sys.isNative) {
             window.callStaticMethod(1,{appid:Global.AppId});
         }

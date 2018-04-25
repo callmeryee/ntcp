@@ -96,13 +96,16 @@ export default class TimeManager extends cc.Component {
              this.timer -= dt; 
              if(this.timer<0)
              {
-                 if(this.finishcallback)
-                 this.finishcallback();
+                //  if(this.finishcallback)
+                //  this.finishcallback();
                  this.clearTime()
              }   
              else
              {
-                this.time_num.string = Math.floor(this.timer).toString();
+                if(this.time_num.string!=Math.floor(this.timer).toString())
+                {
+                   this.time_num.string = Math.floor(this.timer).toString();
+                }
                 this.time.active = true;  
              }
          }

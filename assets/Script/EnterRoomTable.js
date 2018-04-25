@@ -41,10 +41,12 @@ cc.Class({
     },
 
     close:function () {
+        Global.soundmanager.play_button_click();
         Global.disappear_action(this.node);
     },
 
     num_onclick:function(num){
+        Global.soundmanager.play_button_click();
         if(this.values.length<6)
         {
             var len = this.values.length;
@@ -65,11 +67,13 @@ cc.Class({
 
 
     clear_onclick:function(){
+        Global.soundmanager.play_button_click();
         this.values = [];
         this.value_label.string = "";          
     },
 
     del_onclick:function(){
+        Global.soundmanager.play_button_click();
         var len = this.values.length;
         if(len>0)
         {

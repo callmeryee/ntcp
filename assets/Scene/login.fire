@@ -3386,7 +3386,7 @@
     "_enabled": true,
     "_volume": 1,
     "_mute": false,
-    "_loop": false,
+    "_loop": true,
     "playOnLoad": false,
     "preload": false
   },
@@ -3470,7 +3470,8 @@
     "sound": {
       "__id__": 88
     },
-    "audio_clips": null
+    "audio_clips": null,
+    "is_girl": true
   },
   {
     "__type__": "cc.Node",

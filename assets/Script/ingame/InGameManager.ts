@@ -29,6 +29,7 @@ export default class InGameManager extends cc.Component {
     public static icon_first_name = 'pic_';
 
     node_game_buttons: cc.Node = null;
+    node_maizhuang_buttons:cc.Node = null;
     node_order_buttons: cc.Node = null;
     node_card_out_middle: cc.Node = null;
     node_card_out_left: cc.Node = null;
@@ -52,6 +53,7 @@ export default class InGameManager extends cc.Component {
     public data_jiangpai: any = null;
     public data_new_card: any = null;
     public data_middle_card: any = null;
+    data_orgin:any = null;
 
     balance: BalanceManager = null;
     time: TimeManager = null;
@@ -85,16 +87,20 @@ export default class InGameManager extends cc.Component {
         this.node_game_buttons = node_1;
         var node_2 = node_buttons.getChildByName('node_2');
         this.node_order_buttons = node_2;
+        var node_3 = node_buttons.getChildByName('node_3');
+        this.node_maizhuang_buttons = node_3;
         var menu_btn = node_buttons.getChildByName('menu_btn');
         menu_btn.on('click', function (event) {
             this.menu_btn_onclick()
         }, this);
         var invite_btn = node_1.getChildByName('invite_btn');
         invite_btn.on('click', function (event) {
+            Global.soundmanager.play_button_click();
             this.invite_btn_onclick();
         }, this);
         var play_btn = node_1.getChildByName('play_btn');
         play_btn.on('click', function (event) {
+            Global.soundmanager.play_ready_sound();
             this.play_btn_onclick();
         }, this);
         var chupai_btn = node_2.getChildByName('chupai_btn');
@@ -103,25 +109,42 @@ export default class InGameManager extends cc.Component {
         }, this);
         var peng_btn = node_2.getChildByName('peng_btn');
         peng_btn.on('click', function (event) {
+            Global.soundmanager.play_sound2('peng');
             this.peng_btn_onclick();
         }, this);
-        var gang_btn = node_2.getChildByName('gang_btn');
+        var gang_btn = node_2.getChildByName('gang_btn')
         gang_btn.on('click', function (event) {
+            Global.soundmanager.play_sound2('gang');
             this.gang_btn_onclick();
         }, this);
         var hu_btn = node_2.getChildByName('hu_btn');
         hu_btn.on('click', function (event) {
+            Global.soundmanager.play_sound2('hu');
             this.hu_btn_onclick();
         }, this);
         var guo_btn = node_2.getChildByName('guo_btn');
         guo_btn.on('click', function (event) {
+            //Global.soundmanager.play_card_out();
             this.guo_btn_onclick();
         }, this);
+        var maizhuang_btn = node_3.getChildByName('maizhuang_btn');
+        maizhuang_btn.on('click', function (event) {
+            Global.soundmanager.play_button_click();
+            this.maizhuang_btn_onclick();
+        }, this);
+        var bumaizhuang_btn = node_3.getChildByName('bumaizhuang_btn');
+        bumaizhuang_btn.on('click', function (event) {
+            Global.soundmanager.play_button_click();
+            this.bumaizhuang_btn_onclick();
+        }, this);
+
+
 
         this.time = node_body.getChildByName('node_time').getComponent('TimeManager');
     }
 
     start() {
+        Global.soundmanager.play_music_ingame();
         this.init_game();
         //  this.load_record();
     }
@@ -166,6 +189,7 @@ export default class InGameManager extends cc.Component {
     }
 
     init_game() {
+        this.hide_maizhuang();
         this.balance.hide_balance();
         this.set_time(null, null);
         this.set_node_count_label(0);
@@ -275,10 +299,12 @@ export default class InGameManager extends cc.Component {
 
     menu_btn_onclick() {
         console.log('menu_btn on click');
+        Global.soundmanager.play_button_click();
         this.node_menu.active = true;
     }
 
     menu_btn_hide() {
+        Global.soundmanager.play_button_click();
         this.node_menu.active = false;
     }
 
@@ -313,6 +339,7 @@ export default class InGameManager extends cc.Component {
 
     hu_btn_onclick() {
         console.log('hu_btn on click');
+        Global.soundmanager.play_sound('hu');
         Global.server_connection.svc_send(CLIENT_MSG.CM_RESPON_CHU_PAI, { type: PaiMessageResponse.RESULT_HU });
         this.hide_buttons();
     }
@@ -338,6 +365,25 @@ export default class InGameManager extends cc.Component {
     hide_buttons() {
         this.show_order_btns([]);
     }
+
+    maizhuang_btn_onclick(){
+        console.log('maizhuang on click');
+
+        this.set_start_game_msg(this.data_orgin);
+        this.hide_maizhuang();
+    }
+
+    bumaizhuang_btn_onclick(){
+        console.log('bumaizhuang on click');
+
+        this.set_start_game_msg(this.data_orgin);
+        this.hide_maizhuang();
+    }
+
+    hide_maizhuang(){
+        this.node_maizhuang_buttons.active = false;
+    }
+
 
     set_node_count_label(value) {
         this.node_count_label.string = value;
@@ -436,8 +482,9 @@ export default class InGameManager extends cc.Component {
         player.set_data_di(json.di);
         if (json.shou) {
             player.set_data_shou(json.shou);
-        }
-        this.check_data_shou(player, player.get_data_shou());
+            if(json.uid = Global.uid)
+               this.check_data_shou(player, player.get_data_shou());
+        }        
     }
 
     on_ready_game_msg(json) {
@@ -455,16 +502,41 @@ export default class InGameManager extends cc.Component {
         }
     }
 
+
+    show_maizhuang(json){
+        if (json.error) {
+            Global.messagebox.create_box(json.error);
+            return;
+        }
+        this.data_orgin = json;
+        this.player_1.set_prepare(false);
+        this.player_2.set_prepare(false);
+        this.player_self.set_prepare(false);
+        this.show_game_btns([]);
+        this.set_node_count_label(json.size2);
+        this.set_jiangpai_data(json.jiang);
+
+        var player = this.getPlayerByID(json.uid);
+        var list = json.shou;
+        var list_temp = [];
+        for(var i =0 ;i<5;i++){
+           list_temp.push(list[i]);
+        }
+        player.set_data_shou(list_temp);
+        this.node_maizhuang_buttons.active = true;
+    }
+
+
     on_start_game_msg(json) {
         if (json.error) {
             Global.messagebox.create_box(json.error);
             return;
         }
-        var player = this.getPlayerByID(json.uid);
-        this.set_start_game_msg(json, player);
+        this.show_maizhuang(json);
     }
 
-    set_start_game_msg(json, player) {
+    set_start_game_msg(json) {
+        var player = this.getPlayerByID(json.uid);
         this.player_1.set_prepare(false);
         this.player_2.set_prepare(false);
         this.player_self.set_prepare(false);

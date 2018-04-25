@@ -56,26 +56,32 @@ cc.Class({
 
 
     create_room_btn_onclick:function(){
+		Global.soundmanager.play_button_click();
 		Global.appear_action(this.create_table);
 	},
 
 	enter_room_btn_onclick:function(){
+		Global.soundmanager.play_button_click();
 		Global.appear_action(this.enter_room_table);
 	},
 
 	record_btn_onclick:function(){		
-		cc.director.loadScene("ingame2");
+		Global.soundmanager.play_button_click();
+		//cc.director.loadScene("ingame2");
 	},
 
 	rule_btn_onclick:function(){
+		Global.soundmanager.play_button_click();
 		this.rule_table.active = true;
 	},
 
 	set_btn_onclick:function(){
+		Global.soundmanager.play_button_click();
         this.setting_table.active = true;
 	},
 
 	back_btn_onclick:function(){
+		Global.soundmanager.play_button_click();
 		cc.director.loadScene("login");
 	},
 

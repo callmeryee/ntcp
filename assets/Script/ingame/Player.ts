@@ -201,6 +201,7 @@ export default class Player extends cc.Component {
     send_chupai_msg(){
         if(this.data_select==null)
            return;
+        Global.soundmanager.play_chupai_sound(this.data_select);
         Global.server_connection.svc_send(CLIENT_MSG.CM_CHU_PAI,{pai:this.data_select});
     }
 

@@ -34,15 +34,18 @@ cc.Class({
     },
 
     close: function () {
+        Global.soundmanager.play_button_click();
         Global.disappear_action(this.node);
     },
 
     create_onlick: function () {
+        Global.soundmanager.play_button_click();
         Global.enter_room = true;
         this.create_room();
     },
 
     create_for_others_onclick: function () {
+        Global.soundmanager.play_button_click();
         Global.enter_room = false;
         this.create_room();
     },
@@ -102,6 +105,16 @@ cc.Class({
             case 3:
                 {
                     ret = Math.pow(2, 3) + Math.pow(2, 4) + Math.pow(2, 5);
+                }
+                break;
+            case 4:
+                {
+                    ret = Math.pow(2, 3) + Math.pow(2, 5) + Math.pow(2, 7);
+                }
+                break;
+            case 5:
+                {
+                    ret = Math.pow(2, 5) + Math.pow(2, 7) + Math.pow(2, 10);
                 }
                 break;
         }

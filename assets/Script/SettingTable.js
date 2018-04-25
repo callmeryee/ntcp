@@ -31,6 +31,7 @@ cc.Class({
     
 
     close:function () {
+        Global.soundmanager.play_button_click();
         this.node.active = false;
     },
 
