@@ -1,4 +1,5 @@
 import InGameManager from "./InGameManager";
+import RecordManager from "./RecordManager";
 
 // Learn TypeScript:
 //  - [Chinese] http://www.cocos.com/docs/creator/scripting/typescript.html
@@ -36,6 +37,9 @@ export default class Player extends cc.Component {
     start_pos_y:number;
 
     data_select:any=null;
+
+    uid:any = null;
+    openid:any = null;
 
     // LIFE-CYCLE CALLBACKS:
 
@@ -151,7 +155,12 @@ export default class Player extends cc.Component {
         }
         else
             value = self.data_shou[this.data_shou.length-1];
+        this.chupai(value);
+     
+    }
 
+    public chupai(value){
+        var self = this;
         var index = self.data_shou.indexOf(value);
         if(index<0)
         {
@@ -160,9 +169,11 @@ export default class Player extends cc.Component {
         }
         self.data_select = value;
         var node = self.node_own.children[index+12];
+        //console.log(self.data_shou,value,index);
         node.parent = self.node;
         node.scaleX = 1;
         node.scaleY = 1;
+        node.rotation = self.node_own.rotation;
         node.x = self.node_own.x+self.node_own.scaleX*node.x;
         node.y = self.node_own.y+self.node_own.scaleY*node.y;
         self.start_pos_x = node.x;
@@ -186,16 +197,23 @@ export default class Player extends cc.Component {
         var finish = cc.callFunc(function(){
             node.active = false;
             node.parent = self.node_own;
+            if(InGameManager.instance!=null)
             InGameManager.instance.set_middle_data({uid:self.get_uid(),value:self.data_select});
+            else if(RecordManager.instance!=null)
+            RecordManager.instance.set_middle_data({uid:self.get_uid(),value:self.data_select});
             self.data_select = null;
-            InGameManager.instance.check_pai_same(self.data_select);
+            if(InGameManager.instance!=null)
+               InGameManager.instance.check_pai_same(self.data_select);
         },this);
         var action = cc.sequence(cc.moveTo(t,0,135),finish);
         node.runAction(action);
-        self.send_chupai_msg();
-        InGameManager.instance.show_order_btns([]);
+        if(InGameManager.instance!=null)
+           self.send_chupai_msg();
+        if(InGameManager.instance!=null)
+           InGameManager.instance.show_order_btns([]);
         self.can_move = false;
-        InGameManager.instance.clear_time();
+        if(InGameManager.instance!=null)
+           InGameManager.instance.clear_time();
     }
  
     send_chupai_msg(){
@@ -207,15 +225,18 @@ export default class Player extends cc.Component {
 
 
     public reset() {
-        this.can_move = false;
         this.set_info(null);
-        this.set_name('');
+        this.clear();
+        this.show(false);
+    }
+
+    public clear(){
+        this.can_move = false;
         this.set_num(0);
         this.set_prepare(false);
         this.set_data_di([]);
         this.set_data_shou([]);
         this.set_data_out([]);
-        this.show(false);
     }
 
     public init() {
@@ -232,17 +253,39 @@ export default class Player extends cc.Component {
         }
     }
 
+    public init2(){
+        if(this.uid!=null)
+        {
+            this.set_prepare(false);
+            this.show(true);
+        }
+        else
+        {
+            this.show(false);
+        }
+    }
+
     show(tag:boolean){
         this.node.active = tag;
     }
 
     public set_info(value:any){
         this.data_info = value;
+        if(this.data_info!=null)
+           this.set_uid(this.data_info.uid);   
+    }
+
+    public set_uid(uid){
+        this.uid = uid;
+    }
+
+    public set_openid(openid){
+        this.openid = openid;
     }
 
     public get_uid(){
-        if(this.data_info!=null)
-        return this.data_info.uid;
+        if(this.uid!=null)
+        return this.uid;
         else
         return null;
     }
@@ -270,11 +313,22 @@ export default class Player extends cc.Component {
         var new_pai = null;
         for(var i =0 ;i<len;i++)
         {
-            if(pai_list[i].tag == InGameManager.instance.data_new_card)
+            if(InGameManager.instance!=null)
             {
-                new_pai = pai_list[i];
-                continue;
+                if(pai_list[i].tag == InGameManager.instance.data_new_card)
+                {
+                    new_pai = pai_list[i];
+                    continue;
+                }
             }
+            else if(RecordManager.instance!=null)
+            {
+                if(pai_list[i].tag == RecordManager.instance.data_new_card)
+                {
+                    new_pai = pai_list[i];
+                    continue;
+                }
+            }     
             this.data_shou.push(pai_list[i].tag);
         }
         if(new_pai!=null)
@@ -323,7 +377,10 @@ export default class Player extends cc.Component {
         for (var i = 0; i < len; i++) {
             if (this.data_xi.length > index) {
                 var pai = Global.common.get_pai(this.data_xi[index]);
+                if(InGameManager.instance!=null)
                 InGameManager.instance.set_card_data(children[i], pai);
+                else if(RecordManager.instance!=null)
+                RecordManager.instance.set_card_data(children[i], pai);
                 children[i].active = true;
             }
             else {
@@ -337,6 +394,15 @@ export default class Player extends cc.Component {
         var children = this.node_own.children;
         var len2 = this.data_di.length;
         var pai_list_di = [];
+        var func = null;
+        if(InGameManager.instance!=null)
+        {
+            func = InGameManager.instance;
+        }
+        else if(RecordManager.instance!=null)
+        {
+            func = RecordManager.instance;
+        }
         for(var i =0;i<len2;i++)
         {
             var temp = Global.common.get_pai(this.data_di[i]);
@@ -361,7 +427,7 @@ export default class Player extends cc.Component {
         for (var i = 0; i < len1; i++) {
             if (pai_list_di.length > index) {
                 var pai = pai_list_di[index];
-                InGameManager.instance.set_card_data(children[i], pai);
+                func.set_card_data(children[i], pai);
                 children[i].active = true;
             }
             else {
@@ -375,7 +441,7 @@ export default class Player extends cc.Component {
         for (var i = len1; i < len2; i++) {
             if (this.data_shou.length > index) {
                 var pai = Global.common.get_pai(this.data_shou[index]);
-                InGameManager.instance.set_card_data(children[i], pai);
+                func.set_card_data(children[i], pai);
                 if(this.data_select == pai.tag)
                 {
                     children[i].children[0].y=20;
@@ -384,7 +450,7 @@ export default class Player extends cc.Component {
                 {
                     children[i].children[0].y=0;
                 }
-                if(InGameManager.instance.data_new_card == pai.tag)
+                if(func.data_new_card == pai.tag)
                 {
                     children[i].children[0].children[0].active = true;
                 }
@@ -416,7 +482,10 @@ export default class Player extends cc.Component {
         for (var i = 0; i < len; i++) {
             if (this.data_out.length > index) {
                 var pai = Global.common.get_pai(this.data_out[index]);
+                if(InGameManager.instance!=null)
                 InGameManager.instance.set_card_data(children[i], pai);
+                else if(RecordManager.instance!=null)
+                RecordManager.instance.set_card_data(children[i], pai);
                 if(check_pai!=null)
                 {
                     if(check_pai.value == pai.value&&check_pai.type == pai.type)

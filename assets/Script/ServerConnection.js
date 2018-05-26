@@ -5,11 +5,11 @@ var ServerConnection=function(){
 
 ServerConnection.prototype.openid="123456";
 
-// ServerConnection.prototype.ip = "http://192.168.2.103:9800/public";
-// ServerConnection.prototype.wsServer = "ws://192.168.2.103:9300";
+ServerConnection.prototype.ip = "http://192.168.2.103:9800/public";
+ServerConnection.prototype.wsServer = "ws://192.168.2.103:9300";
 
-ServerConnection.prototype.ip = "http://ntcp.wohnb.com/ntcp";
-ServerConnection.prototype.wsServer = "ws://ntcp.wohnb.com:9500";
+// ServerConnection.prototype.ip = "http://ntcp.wohnb.com/ntcp";
+// ServerConnection.prototype.wsServer = "ws://ntcp.wohnb.com:9500";
 
 ServerConnection.prototype.svc_websocket = null;
 
@@ -70,9 +70,10 @@ ServerConnection.prototype.login = function(code,uid,check){
     })
 }
 
-ServerConnection.prototype.create_room = function(playCount,payType,balanceRate,includexi,forceNew){
+ServerConnection.prototype.create_room = function(playCount,payType,balanceRate,includexi){
     var url = this.ip + "/getRoomCard";
-    var data = {uid:Global.unionid,playCount:playCount,payType:payType,balanceRate:balanceRate,includexi:includexi,forceNew:forceNew};
+    var currencyType = 'Diamond';
+    var data = {uid:Global.unionid,playCount:playCount,payType:payType,balanceRate:balanceRate,includexi:includexi,currencyType:currencyType};
     this.xmlHttpRequest2(url,data,function(respone){
         var json = JSON.parse(respone);
         //console.log(json);

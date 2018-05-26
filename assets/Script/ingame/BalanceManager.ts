@@ -1,4 +1,5 @@
 import InGameManager from "./InGameManager";
+import RecordManager from "./RecordManager";
 
 // Learn TypeScript:
 //  - [Chinese] http://www.cocos.com/docs/creator/scripting/typescript.html
@@ -35,11 +36,15 @@ export default class BalanceManager extends cc.Component {
 
     set_balance_data(json){
        this.data_card = json.card;
-       this.data = json.data;
+       this.data = json.data;   
     }
 
     set_jiangpai () {
-        var data_jiangpai = InGameManager.instance.data_jiangpai;
+        var data_jiangpai = null;
+        if(InGameManager.instance!=null)
+           data_jiangpai = InGameManager.instance.data_jiangpai;
+        else if(RecordManager.instance!=null)
+           data_jiangpai = RecordManager.instance.data_jiangpai;
         if(data_jiangpai!=null)
         {
             if(data_jiangpai == null||data_jiangpai.length ==0 )
@@ -53,7 +58,13 @@ export default class BalanceManager extends cc.Component {
                     if(i<data_jiangpai.length)
                     {
                     var pai = Global.common.get_pai(data_jiangpai[i]);
-                    InGameManager.instance.set_card_data(node,pai);
+
+
+                    if (InGameManager.instance != null)
+                        InGameManager.instance.set_card_data(node, pai);
+                    else if (RecordManager.instance != null)
+                        RecordManager.instance.set_card_data(node, pai);
+
                     node.active = true;
                     }
                     else
@@ -76,6 +87,8 @@ export default class BalanceManager extends cc.Component {
         return;
         this.set_jiangpai();
         var len = this.node_items.length;
+        var scores = [];
+        var balanceRate = this.data_card.balanceRate;  
         for(var i = 0;i<len;i++)
         {
             var data2 = null;
@@ -85,7 +98,13 @@ export default class BalanceManager extends cc.Component {
             }  
             if(data2!=null)
             {
-                var player = InGameManager.instance.getPlayerByID(data2.uid);
+                var player = null;
+
+                if (InGameManager.instance != null)
+                    InGameManager.instance.getPlayerByID(data2.uid);
+                else if (RecordManager.instance != null)
+                    RecordManager.instance.getPlayerByID(data2.uid);
+
                 var item = this.node_items[i];
                 item.active = true;   
                 var info = item.getChildByName('info');
@@ -94,7 +113,7 @@ export default class BalanceManager extends cc.Component {
                 var name = info.getChildByName('name').getComponent(cc.Label);
                 name.string = player.name_label.string;
                 var node_hushu=item.getChildByName('hushu');
-                node_hushu.getChildByName('Label').getComponent(cc.Label).string = data2.score+"胡";
+                node_hushu.getChildByName('Label').getComponent(cc.Label).string = data2.hu+"胡";
                 var node_paixing = item.getChildByName('paixing');
                 var paixing_string = "";
                 if(data2.type1 && data2.type2)
@@ -117,6 +136,12 @@ export default class BalanceManager extends cc.Component {
                 }
                 node_paixing.getChildByName('Label').getComponent(cc.Label).string = paixing_string;
 
+                var node_score = item.getChildByName('score');
+                var score_data = {};
+                score_data.hu = data2.hu;
+                score_data.player = player;
+                score_data.label = node_score.getChildByName('Label').getComponent(cc.Label);
+                scores.push(score_data);
 
                 var data_xi=[];
                 var data_di=[];
@@ -143,6 +168,9 @@ export default class BalanceManager extends cc.Component {
                             win_type.string = "点炮";
                     }
                 }
+
+
+
             }
             else
             {
@@ -150,6 +178,21 @@ export default class BalanceManager extends cc.Component {
                 this.node_items[i].active = false;    
             }
         }
+
+        for(var i=0;i<scores.length;i++)
+        {
+            var ret = 0;
+            for(var j=0;j<scores.length;j++)
+            {
+                if(j!=i)
+                {
+                    ret+=scores[i].hu-scores[j].hu;
+                }
+            }
+            scores[i].label.string = ret.toString();
+        }
+
+
         this.node.active = true;
     }
 
@@ -180,7 +223,12 @@ export default class BalanceManager extends cc.Component {
         for (var i = 0; i < len1; i++) {
             if (pai_list_di.length > index) {
                 var pai = pai_list_di[index];
+         
+                if (InGameManager.instance != null)
                 InGameManager.instance.set_card_data(children[i], pai);
+                else if (RecordManager.instance != null)
+                RecordManager.instance.set_card_data(children[i], pai);
+
                 children[i].active = true;
             }
             else {
@@ -216,7 +264,12 @@ export default class BalanceManager extends cc.Component {
         for (var i = len1; i < len2; i++) {
             if (data_shou_temp.length > index) {
                 var pai = Global.common.get_pai(data_shou_temp[index]);
+
+                if (InGameManager.instance != null)
                 InGameManager.instance.set_card_data(children[i], pai);
+                else if (RecordManager.instance != null)
+                RecordManager.instance.set_card_data(children[i], pai);
+
                 if (this.data_hu != null) {
                     if (pai.tag == this.data_hu.pai) {
                         children[i].children[0].children[0].active = true;

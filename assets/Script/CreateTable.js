@@ -53,10 +53,10 @@ cc.Class({
     create_room: function () {
         this.playCount = this.set_playCount();
         this.balanceRate = this.set_balanceRate();
-        this.payType = 1;
+        this.payType = this.setPayType();
         this.includexi = true;
         this.forceNew = true;
-        server_connetcion.create_room(this.playCount, this.payType, this.balanceRate, this.includexi, this.forceNew);
+        server_connetcion.create_room(this.playCount, this.payType, this.balanceRate, this.includexi);
     },
 
     get_data: function (node) {
@@ -85,40 +85,63 @@ cc.Class({
 
     set_balanceRate() {
         var index = this.get_data(this.node_multiple);
-        var ret = 0;
+        var ret;
         switch (index) {
             case 0:
                 {
-                    ret = 0;
+                    //ret = 0;
+                    ret = [1,1,1];
                 }
                 break;
             case 1:
                 {
-                    ret = Math.pow(2, 1) + Math.pow(2, 2) + Math.pow(2, 3);
+                    ret = [1,2,3];
+                    //ret = Math.pow(2, 1) + Math.pow(2, 2) + Math.pow(2, 3);
                 }
                 break;
             case 2:
                 {
-                    ret = Math.pow(2, 2) + Math.pow(2, 3) + Math.pow(2, 4);
+                    ret = [2,3,4];
+                    //ret = Math.pow(2, 2) + Math.pow(2, 3) + Math.pow(2, 4);
                 }
                 break;
             case 3:
                 {
-                    ret = Math.pow(2, 3) + Math.pow(2, 4) + Math.pow(2, 5);
+                    ret = [3,4,5];
+                    //ret = Math.pow(2, 3) + Math.pow(2, 4) + Math.pow(2, 5);
                 }
                 break;
             case 4:
                 {
-                    ret = Math.pow(2, 3) + Math.pow(2, 5) + Math.pow(2, 7);
+                    ret = [3,5,7];
+                    //ret = Math.pow(2, 3) + Math.pow(2, 5) + Math.pow(2, 7);
                 }
                 break;
             case 5:
                 {
-                    ret = Math.pow(2, 5) + Math.pow(2, 7) + Math.pow(2, 10);
+                    ret = [5,7,10];
+                    //ret = Math.pow(2, 5) + Math.pow(2, 7) + Math.pow(2, 10);
                 }
                 break;
         }
         return ret;
+    },
+
+    setPayType(){
+        var index = this.get_data(this.node_pay);  
+        switch(index)
+        {
+            case 0 :
+            return 'Host';
+            break;
+            case 1 :
+            return 'Winer';
+            break;
+            case 2 :
+            return 'AA';
+            break;
+        }
+        
     },
 
     get_balanceRate(value) {

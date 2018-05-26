@@ -41,7 +41,7 @@ cc.Class({
 	},
 
 	onLoad () {
-	    Global.lobby = this;
+		Global.lobby = this;
 		this.reset();
 		this.setLobbyInfo();
 	},
@@ -67,7 +67,7 @@ cc.Class({
 
 	record_btn_onclick:function(){		
 		Global.soundmanager.play_button_click();
-		//cc.director.loadScene("ingame2");
+		cc.director.loadScene("record");
 	},
 
 	rule_btn_onclick:function(){

@@ -5844,7 +5844,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": -50,
-      "y": 112
+      "y": 121
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -8586,7 +8586,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": -50,
-      "y": -96
+      "y": -87
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -9447,7 +9447,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": -50,
-      "y": -180
+      "y": -166
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -9605,7 +9605,7 @@
     },
     "_children": [],
     "_tag": -1,
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 224
@@ -9808,7 +9808,7 @@
       "__id__": 224
     },
     "checkEvents": [],
-    "_N$isChecked": true
+    "_N$isChecked": false
   },
   {
     "__type__": "cc.Node",
@@ -9829,7 +9829,7 @@
       }
     ],
     "_tag": -1,
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 235
@@ -9959,7 +9959,7 @@
     },
     "_children": [],
     "_tag": -1,
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 232
@@ -10162,7 +10162,7 @@
       "__id__": 232
     },
     "checkEvents": [],
-    "_N$isChecked": false
+    "_N$isChecked": true
   },
   {
     "__type__": "cc.Node",
@@ -10183,7 +10183,7 @@
       }
     ],
     "_tag": -1,
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 243

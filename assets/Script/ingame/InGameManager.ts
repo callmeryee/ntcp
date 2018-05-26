@@ -1,6 +1,7 @@
 import Player from "./Player";
 import { stat } from "fs";
 import BalanceManager from "./BalanceManager";
+import ResultManager from "./ResultManager";
 import TimeManager from "./TimeManager";
 
 // Learn TypeScript:
@@ -57,6 +58,8 @@ export default class InGameManager extends cc.Component {
 
     balance: BalanceManager = null;
     time: TimeManager = null;
+
+    result:ResultManager = null;
     // LIFE-CYCLE CALLBACKS:
 
     onLoad() {
@@ -64,7 +67,9 @@ export default class InGameManager extends cc.Component {
 
         this.node_menu = this.node.getChildByName('node_menu');
         this.balance = this.node.getChildByName('node_balance').getComponent('BalanceManager');
+        this.result = this.node.getChildByName('node_result').getComponent('ResultManager');
         this.balance.init();
+        this.result.init();
 
         var node_body = this.node.getChildByName('node_body');
         var node_players = node_body.getChildByName('node_players');
@@ -149,6 +154,10 @@ export default class InGameManager extends cc.Component {
         //  this.load_record();
     }
 
+    onDestroy(){
+        InGameManager.instance = null;
+    }
+
     load_record() {
         var self = this;
         cc.loader.loadRes('record/record', function (error, obj) {
@@ -191,6 +200,7 @@ export default class InGameManager extends cc.Component {
     init_game() {
         this.hide_maizhuang();
         this.balance.hide_balance();
+        this.result.hide_result();
         this.set_time(null, null);
         this.set_node_count_label(0);
         this.set_jiangpai_data(null);
@@ -773,8 +783,16 @@ export default class InGameManager extends cc.Component {
             Global.messagebox.create_box(json.error);
             return;
         }
+        if(json.score)
+        {
+        this.result.set_result_data(json);
+        this.result.show_result();
+        }
+        else
+        {
         this.balance.set_balance_data(json);
         this.balance.show_balance();
+        }
     }
 
     auto_chupai() {
