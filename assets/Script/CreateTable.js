@@ -24,13 +24,28 @@ cc.Class({
         balanceRate: null,
         includexi: null,
         forceNew: null,
+
+        timer:0,
     },
 
     // LIFE-CYCLE CALLBACKS:
 
     // onLoad () {},
 
+    update (dt) {
+        if (this.timer > 0) {
+            this.timer -= dt;
+            if (this.timer < 0)
+                this.timer = 0;
+        }
+    },
+
     start() {
+    },
+
+    show:function(){
+       this.timer = 0;
+       this.node.active = true;
     },
 
     close: function () {
@@ -51,12 +66,15 @@ cc.Class({
     },
 
     create_room: function () {
+        if(this.timer>0)
+        return;
         this.playCount = this.set_playCount();
         this.balanceRate = this.set_balanceRate();
         this.payType = this.setPayType();
         this.includexi = true;
         this.forceNew = true;
         server_connetcion.create_room(this.playCount, this.payType, this.balanceRate, this.includexi);
+        this.timer = 3;
     },
 
     get_data: function (node) {

@@ -154,9 +154,6 @@ export default class InGameManager extends cc.Component {
         //  this.load_record();
     }
 
-    onDestroy(){
-        InGameManager.instance = null;
-    }
 
     load_record() {
         var self = this;
@@ -825,6 +822,7 @@ export default class InGameManager extends cc.Component {
         this.player_2.check_pai_same(value);
         this.player_self.check_pai_same(value);
     }
+
 
 
 

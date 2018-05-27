@@ -74,6 +74,7 @@ ServerConnection.prototype.login = function(code,uid,check){
 }
 
 ServerConnection.prototype.create_room = function(playCount,payType,balanceRate,includexi){
+
     var url = this.ip + "/getRoomCard";
     var currencyType = 'Diamond';
     var data = {uid:Global.unionid,playCount:playCount,payType:payType,balanceRate:balanceRate,includexi:includexi,currencyType:currencyType};
@@ -155,6 +156,8 @@ ServerConnection.prototype.svc_closePlatform=function() {
     if(this.svc_websocket!=null)
     {
         this.svc_websocket.close();
+        this.svc_websocket = null;
+        console.log('ws close');
     }
 }
 

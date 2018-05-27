@@ -56,6 +56,10 @@ cc.Class({
     onLoad () {
         Global.login = this;
         this.random_btn.active = !cc.sys.isNative;
+        cc.game.onStop = function () {
+            server_connetcion.svc_closePlatform();
+            cc.log("stopApp");
+        }
 	},
 
     login_onclick:function () {

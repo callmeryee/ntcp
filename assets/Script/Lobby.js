@@ -60,7 +60,7 @@ cc.Class({
 
     create_room_btn_onclick:function(){
 		Global.soundmanager.play_button_click();
-		Global.appear_action(this.create_table);
+		this.create_table.getComponent('CreateTable').show();
 	},
 
 	enter_room_btn_onclick:function(){
