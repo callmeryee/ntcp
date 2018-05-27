@@ -45,9 +45,9 @@ cc.Class({
     },
 
     create_for_others_onclick: function () {
-        Global.soundmanager.play_button_click();
-        Global.enter_room = false;
-        this.create_room();
+        // Global.soundmanager.play_button_click();
+        // Global.enter_room = false;
+        // this.create_room();
     },
 
     create_room: function () {

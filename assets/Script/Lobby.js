@@ -17,6 +17,7 @@ cc.Class({
 		enter_room_btn : cc.Button,
 		gold_room_btn: cc.Button,
 
+		kefu_btn:cc.Button,
 		rule_btn:cc.Button,
 		setting_btn:cc.Button,
 		back_btn:cc.Button,
@@ -25,6 +26,8 @@ cc.Class({
 		enter_room_table:cc.Node,
 		rule_table:cc.Node,
 		setting_table:cc.Node,
+		kefu_table:cc.Node,
+		record_table:cc.Node,
 
 	},
 
@@ -67,12 +70,17 @@ cc.Class({
 
 	record_btn_onclick:function(){		
 		Global.soundmanager.play_button_click();
-		cc.director.loadScene("record");
+		this.record_table.getComponent('RecordTable').show();
 	},
 
 	rule_btn_onclick:function(){
 		Global.soundmanager.play_button_click();
 		this.rule_table.active = true;
+	},
+
+	kefu_btn_onclick:function(){
+		Global.soundmanager.play_button_click();
+		this.kefu_table.active = true;
 	},
 
 	set_btn_onclick:function(){
@@ -84,6 +92,10 @@ cc.Class({
 		Global.soundmanager.play_button_click();
 		cc.director.loadScene("login");
 	},
+
+	deal_record:function(json){
+		this.record_table.getComponent('RecordTable').deal_record(json);
+	}
 
 
 	// update (dt) {},

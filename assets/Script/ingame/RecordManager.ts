@@ -3,6 +3,7 @@ import { stat } from "fs";
 import BalanceManager from "./BalanceManager";
 import TimeManager from "./TimeManager";
 import ResultManager from "./ResultManager";
+import GlobalStatic from "../GlobalStatic";
 
 // Learn TypeScript:
 //  - [Chinese] http://www.cocos.com/docs/creator/scripting/typescript.html
@@ -62,6 +63,8 @@ export default class RecordManager extends cc.Component {
     index:number = 0;
     pause:boolean = true;
     is_new:boolean = false;
+
+    last_msg_type = null;
 
     update (dt) {
        if(this.pause)
@@ -144,6 +147,7 @@ export default class RecordManager extends cc.Component {
         this.show_game_btns([0, 1]);
         this.show_order_btns([]);
         this.clear_player();
+        this.wait_time = 5;
     }
 
     hide_maizhuang(){
@@ -275,15 +279,15 @@ export default class RecordManager extends cc.Component {
             if(i==0)
             {
                this.player_self.set_uid(data[0]);
-               this.player_self.set_openid(data[1]);
+               this.player_self.set_unionid(data[1]);
             }
             else if(i==1){
                 this.player_2.set_uid(data[0]);
-                this.player_2.set_openid(data[1]);
+                this.player_2.set_unionid(data[1]);
             }
             else if(i==2){
                 this.player_1.set_uid(data[0]);
-                this.player_1.set_openid(data[1]);
+                this.player_1.set_unionid(data[1]);
             }
         }
         this.player_self.init2();
@@ -298,12 +302,14 @@ export default class RecordManager extends cc.Component {
         this.pause = true;
         this.index = 0;
         this.init_game();
-        cc.loader.loadRes('record/record.text', function (error, obj) {
-            var temp = obj.toString();
+        if(Global.record_data!=null)
+        {
+            var temp = Global.record_data;
             self.record_data = temp.split('\n');
             self.switch_record();
             self.pause = false;
-        });
+            Global.record_data = null;
+        }
     }
  
 
@@ -334,6 +340,8 @@ export default class RecordManager extends cc.Component {
             var type = Number.parseInt(temp.substring(0, start - 1));
             var msg = temp.substring(start, end);
             this.onMessage(type,msg);
+            this.last_msg_type = type;
+
         }
     }
 
@@ -386,19 +394,33 @@ export default class RecordManager extends cc.Component {
             this.on_balance_msg(json);
             break;
 
+            case 12:
+            this.on_maizhuang_msg(json);
+            break;
+
         }
     }
 
+    on_maizhuang_msg(json)
+    {
+        var player = this.getPlayerByID(json.uid);
+        player.set_maizhuang(json.maizhuang);
+        this.timer = 0;
+    }
+
     on_balance_msg(json) {
-        if(json.score)
-        {
-        this.result.set_result_data(json);
-        this.result.show_result();
+        if (this.last_msg_type != 10) {
+            if (json.score) {
+                this.result.set_result_data(json);
+                this.result.show_result();
+            }
+            else {
+                this.balance.set_balance_data(json);
+                this.balance.show_balance();
+            }
         }
-        else
-        {
-        this.balance.set_balance_data(json);
-        this.balance.show_balance();
+        else {
+            this.timer = 0;
         }
     }
 
@@ -407,6 +429,7 @@ export default class RecordManager extends cc.Component {
         this.clear_time();
         this.balance.set_hupai_data(json);
         this.timer = 0;
+        this.wait_time = 15;
         this.is_new = true;
     }
 
@@ -493,9 +516,9 @@ export default class RecordManager extends cc.Component {
             this.is_new = false; 
         }
         var player = this.getPlayerByID(json.uid);
-        this.player_1.set_prepare(false);
-        this.player_2.set_prepare(false);
-        this.player_self.set_prepare(false);
+        this.player_1.set_prepare();
+        this.player_2.set_prepare();
+        this.player_self.set_prepare();
         this.show_game_btns([]);
         var list = json.shou;
         var num = list.length;

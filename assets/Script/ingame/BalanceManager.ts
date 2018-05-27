@@ -101,14 +101,17 @@ export default class BalanceManager extends cc.Component {
                 var player = null;
 
                 if (InGameManager.instance != null)
-                    InGameManager.instance.getPlayerByID(data2.uid);
+                player = InGameManager.instance.getPlayerByID(data2.uid);
                 else if (RecordManager.instance != null)
-                    RecordManager.instance.getPlayerByID(data2.uid);
+                player = RecordManager.instance.getPlayerByID(data2.uid);
 
                 var item = this.node_items[i];
                 item.active = true;   
                 var info = item.getChildByName('info');
                 var icon = info.getChildByName('icon').getComponent(cc.Sprite);
+                var maizhuang = info.getChildByName('maizhuang');
+                maizhuang.active = player.is_maizhuang;
+
                 icon.spriteFrame = player.icon.spriteFrame;
                 var name = info.getChildByName('name').getComponent(cc.Label);
                 name.string = player.name_label.string;
@@ -186,7 +189,32 @@ export default class BalanceManager extends cc.Component {
             {
                 if(j!=i)
                 {
-                    ret+=scores[i].hu-scores[j].hu;
+                    var temp = scores[i].hu-scores[j].hu;
+                    var rate = balanceRate[0];
+                    if(scores[i].player.is_maizhuang)
+                    {
+                       if(scores[j].player.is_maizhuang)
+                       {
+                        rate = balanceRate[2];
+                       }
+                       else
+                       {
+                        rate = balanceRate[1];
+                       }
+                    }
+                    else
+                    {
+                        if(scores[j].player.is_maizhuang)
+                        {
+                            rate = balanceRate[1];
+                        }
+                        else
+                        {
+                            rate = balanceRate[0];
+                        }
+                    }
+
+                    ret+= temp*rate;                
                 }
             }
             scores[i].label.string = ret.toString();
@@ -294,15 +322,21 @@ export default class BalanceManager extends cc.Component {
 
 
     continue_btn_onclick(){
-        Global.server_connection.enter_room();
+        if(InGameManager.instance == null)
+        return;
+        InGameManager.instance.init_game(); 
     }
 
     back_btn_onclick(){
+        if(InGameManager.instance != null)
         Global.server_connection.svc_closePlatform();
+        else if(RecordManager.instance!=null)
+        Global.leave_room();
     }
 
     share_btn_onclick(){
-
+        if(InGameManager.instance == null)
+        return;
     }
 
 

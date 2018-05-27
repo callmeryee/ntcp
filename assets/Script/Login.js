@@ -61,7 +61,12 @@ cc.Class({
     login_onclick:function () {
         Global.soundmanager.play_button_click();
         if (cc.sys.isNative) {
-            window.callStaticMethod(1,{appid:Global.AppId});
+            var local_unionid = cc.sys.localStorage.getItem('local_unionid');
+            if (local_unionid&&local_unionid!='') {
+                server_connetcion.login('123',local_unionid,false);
+            }
+            else        
+                window.callStaticMethod(1,{appid:Global.AppId});
         }
         else
         {

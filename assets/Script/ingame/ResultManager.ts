@@ -19,6 +19,8 @@ export default class NewClass extends cc.Component {
  
     data:any = null;
 
+    data_card:any = null;
+
     node_items:cc.Node[] = null;
     // LIFE-CYCLE CALLBACKS:
 
@@ -34,6 +36,7 @@ export default class NewClass extends cc.Component {
 
     set_result_data(json){
         this.data = json.score;   
+        this.data_card = json.card;
     }
 
     show_result(){
@@ -103,7 +106,8 @@ export default class NewClass extends cc.Component {
                 var label_ID = node_info.getChildByName('ID').getComponent(cc.Label);
                 label_ID.string = '';
                 var node_host = node_info.getChildByName('host');
-                node_host.active = true;
+                node_host.active = player.get_unionid() == this.data_card.owner;
+                console.log('~~~~~~~~~~~~~房主'+player.get_unionid(),this.data_card.owner);
 
                 var data_score = data2.score;
         
@@ -134,11 +138,15 @@ export default class NewClass extends cc.Component {
     }
 
     back_btn_onclick(){
+        if(InGameManager.instance != null)
         Global.server_connection.svc_closePlatform();
+        else if(RecordManager.instance!=null)
+        Global.leave_room();
     }
 
     share_btn_onclick(){
-
+        if(InGameManager.instance == null)
+        return;
     }
 
     // update (dt) {},

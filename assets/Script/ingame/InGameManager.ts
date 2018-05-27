@@ -198,14 +198,14 @@ export default class InGameManager extends cc.Component {
     }
 
     init_game() {
-        this.hide_maizhuang();
+        this.hide_maizhuang();  
         this.balance.hide_balance();
         this.result.hide_result();
         this.set_time(null, null);
         this.set_node_count_label(0);
         this.set_jiangpai_data(null);
         this.set_middle_data(null);
-        this.show_game_btns([0, 1]);
+        this.show_game_btns([1]);
         this.show_order_btns([]);
         if (Global.room_uid != null)
             this.node_room_id.string = "房间号：" + Global.room_uid;
@@ -366,7 +366,7 @@ export default class InGameManager extends cc.Component {
             }
             else
             {
-                this.auto_chupai();
+                //this.auto_chupai();
             }
         }
         this.hide_buttons();
@@ -378,15 +378,15 @@ export default class InGameManager extends cc.Component {
 
     maizhuang_btn_onclick(){
         console.log('maizhuang on click');
-
         this.set_start_game_msg(this.data_orgin);
+        Global.server_connection.svc_send(CLIENT_MSG.CM_MAI_ZHUANG,{maizhuang:true});
         this.hide_maizhuang();
     }
 
     bumaizhuang_btn_onclick(){
         console.log('bumaizhuang on click');
-
         this.set_start_game_msg(this.data_orgin);
+        Global.server_connection.svc_send(CLIENT_MSG.CM_MAI_ZHUANG,{maizhuang:false});
         this.hide_maizhuang();
     }
 
@@ -503,12 +503,13 @@ export default class InGameManager extends cc.Component {
             return;
         }
         var player = this.getPlayerByID(json.uid)
-        player.set_prepare(json.state == State.IN_READY.toString());
+        player.setState(State.IN_READY);
+        player.set_prepare();
         if (player.get_uid() == Global.uid) {
             if (json.state == State.IN_READY.toString())
-                this.show_game_btns([0]);
+                this.show_game_btns([]);
             else
-                this.show_game_btns([0, 1]);
+                this.show_game_btns([1]);
         }
     }
 
@@ -519,9 +520,7 @@ export default class InGameManager extends cc.Component {
             return;
         }
         this.data_orgin = json;
-        this.player_1.set_prepare(false);
-        this.player_2.set_prepare(false);
-        this.player_self.set_prepare(false);
+
         this.show_game_btns([]);
         this.set_node_count_label(json.size2);
         this.set_jiangpai_data(json.jiang);
@@ -542,14 +541,20 @@ export default class InGameManager extends cc.Component {
             Global.messagebox.create_box(json.error);
             return;
         }
+
+        this.player_1.setState(State.IN_GAME);
+        this.player_2.setState(State.IN_GAME);
+        this.player_self.setState(State.IN_GAME);
+
+        this.player_1.set_prepare();
+        this.player_2.set_prepare();
+        this.player_self.set_prepare();
+
         this.show_maizhuang(json);
     }
 
     set_start_game_msg(json) {
         var player = this.getPlayerByID(json.uid);
-        this.player_1.set_prepare(false);
-        this.player_2.set_prepare(false);
-        this.player_self.set_prepare(false);
         this.show_game_btns([]);
         this.set_node_count_label(json.size2);
         this.set_jiangpai_data(json.jiang);
@@ -783,6 +788,11 @@ export default class InGameManager extends cc.Component {
             Global.messagebox.create_box(json.error);
             return;
         }
+
+        this.player_1.setState(State.IN_BLANCE);
+        this.player_2.setState(State.IN_BLANCE);
+        this.player_self.setState(State.IN_BLANCE);
+
         if(json.score)
         {
         this.result.set_result_data(json);
@@ -793,6 +803,12 @@ export default class InGameManager extends cc.Component {
         this.balance.set_balance_data(json);
         this.balance.show_balance();
         }
+    }
+
+    on_maizhuang_msg(json)
+    {
+        var player = this.getPlayerByID(json.uid);
+        player.set_maizhuang(json.maizhuang);
     }
 
     auto_chupai() {

@@ -1,15 +1,18 @@
 import InGameManager from "./ingame/InGameManager";
+import RecordManager from "./ingame/RecordManager";
 
 var ServerConnection=function(){
 }
 
 ServerConnection.prototype.openid="123456";
 
-ServerConnection.prototype.ip = "http://192.168.2.103:9800/public";
-ServerConnection.prototype.wsServer = "ws://192.168.2.103:9300";
+// ServerConnection.prototype.ip = "http://192.168.2.103:9800/public";
+// ServerConnection.prototype.wsServer = "ws://192.168.2.103:9300";
+// ServerConnection.prototype.record_url = "http://192.168.2.110:8080/record/";
 
-// ServerConnection.prototype.ip = "http://ntcp.wohnb.com/ntcp";
-// ServerConnection.prototype.wsServer = "ws://ntcp.wohnb.com:9500";
+ServerConnection.prototype.ip = "http://ntcp.wohnb.com/ntcp";
+ServerConnection.prototype.wsServer = "ws://ntcp.wohnb.com:9500";
+ServerConnection.prototype.record_url = "http://ntcp.wohnb.com/record/";
 
 ServerConnection.prototype.svc_websocket = null;
 
@@ -81,6 +84,27 @@ ServerConnection.prototype.create_room = function(playCount,payType,balanceRate,
     })
 }
 
+ServerConnection.prototype.get_record = function(uid,dayCount)
+{
+    var url = this.ip + "/getRoomRecoder";
+    var data = {uid:uid,dayCount:dayCount};
+    console.log(data);
+    this.xmlHttpRequest2(url,data,function(respone){
+        var json = JSON.parse(respone);
+       // console.log(json);
+        Global.deal_record(json);
+    })
+}
+
+ServerConnection.prototype.get_card_record = function(path){
+    var url = this.record_url+path;
+    this.xmlHttpRequest(url,function(respone){
+        console.log(respone);
+        Global.record_data = respone;
+        cc.director.loadScene("record");
+    })
+}
+
 ServerConnection.prototype.random_user = function(){
     var url = "http://192.168.2.103:9800/test/createRandomUser";
     this.xmlHttpRequest(url,function(respone){
@@ -89,6 +113,7 @@ ServerConnection.prototype.random_user = function(){
         Global.init_login(json);
     })
 }
+
 
 // ServerConnection.prototype.load_record = function(){
 //     //var url = this.ip + "/createRoom?data="+encodeURI(JSON.stringify({openid:this.openid,totle:arguments[0],multiple:arguments[1],xipai:arguments[2],pay:arguments[3]}));
@@ -229,6 +254,12 @@ ServerConnection.prototype.svc_onMessage = function(evt) {
         {
             if(InGameManager.instance)
                InGameManager.instance.on_balance_msg(json.msg);
+        }
+        break;
+        case SERVER_MSG.SM_MAI_ZHUANG:
+        {
+            if(InGameManager.instance)
+               InGameManager.instance.on_maizhuang_msg(json.msg);
         }
         break;
     }

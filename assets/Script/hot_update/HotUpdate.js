@@ -33,7 +33,8 @@ cc.Class({
                 this.panel.info.string = 'New version found, please try to update.';
                 this.panel.fileProgress.progress = 0;
                 this.panel.byteProgress.progress = 0;
-                this.panel.updateBtn.active = true;
+                this.hotUpdate();
+                //this.panel.updateBtn.active = true;
                 break;
             default:
                 return;
