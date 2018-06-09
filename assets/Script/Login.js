@@ -9,7 +9,6 @@
 //  - [English] http://www.cocos2d-x.org/docs/editors_and_tools/creator-chapters/scripting/life-cycle-callbacks/index.html
 
 
-var server_connetcion = require("ServerConnection");
 var common = require("Common");
 
 //0：日志 1:注册appid 2：授权 3分享
@@ -25,7 +24,7 @@ window.OnNativeResponse = function (type, msg) {
             var code = msg.msg.code;
             if(code!=null)
             {
-               server_connetcion.login(code,'123',true);
+               ServerConnection.login(code,'123',true);
             }
         }
     }
@@ -54,32 +53,39 @@ cc.Class({
     },
 
     onLoad () {
+
         Global.login = this;
         this.random_btn.active = !cc.sys.isNative;
-        cc.game.onStop = function () {
-            server_connetcion.svc_closePlatform();
-            cc.log("stopApp");
-        }
+        // cc.game.onStop = function () {
+        //     ServerConnection.svc_closePlatform();
+        //     cc.log("stopApp");
+        // }
 	},
 
+
+    onopen(evt){
+        console.log(evt);
+    },
+    
     login_onclick:function () {
         Global.soundmanager.play_button_click();
         if (cc.sys.isNative) {
             var local_unionid = cc.sys.localStorage.getItem('local_unionid');
             if (local_unionid&&local_unionid!='') {
-                server_connetcion.login('123',local_unionid,false);
+                ServerConnection.login('123',local_unionid,false);
             }
             else        
                 window.callStaticMethod(1,{appid:Global.AppId});
         }
         else
         {
-            server_connetcion.login('123','oUQtWxNbxtl6WrywgcMSGzBpezRo',false);
+            ServerConnection.login('123','oUQtWxNbxtl6WrywgcMSGzBpezRo',false);
         }
     },
 
     random_onclick:function(){
-      server_connetcion.random_user();
+
+        ServerConnection.random_user();
     },
      
     show_address_btn_onclick:function(){
@@ -87,8 +93,8 @@ cc.Class({
     },
 
     address_confirm_onclick:function(){    
-        server_connetcion.ip = this.http_address.string;
-        server_connetcion.wsServer = this.ws_address.string;
+        ServerConnection.ip = this.http_address.string;
+        ServerConnection.wsServer = this.ws_address.string;
     },
 
     address_cancle_onclick:function(){
@@ -96,13 +102,16 @@ cc.Class({
     },
 
     update (dt) {
-        if(cc.sys.os == cc.sys.OS_ANDROID){
-             var script = jsb.reflection.callStaticMethod("com/heretry/ntcp/AppActivity", "readLastScript", "()Ljava/lang/String;");         
-             if(script != ""){
-                // window.callStaticMethod(0,script);
-                eval(script);
-             }
-        }
+        if(cc.sys.isNative)
+        {
+            if(cc.sys.os == cc.sys.OS_ANDROID){
+                var script = jsb.reflection.callStaticMethod("com/heretry/ntcp/AppActivity", "readLastScript", "()Ljava/lang/String;");         
+                if(script != ""){
+                   // window.callStaticMethod(0,script);
+                   eval(script);
+                }
+           }
+        }    
     },
 
 });

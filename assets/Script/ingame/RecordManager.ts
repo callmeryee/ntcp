@@ -128,6 +128,7 @@ export default class RecordManager extends cc.Component {
  
     onDestroy(){
         RecordManager.instance = null;
+        window.callStaticMethod(0, 'cocosLog:RecordManager destroy');
     }
     
     init_game() {
@@ -274,21 +275,85 @@ export default class RecordManager extends cc.Component {
     set_player(json){
         var player = json.player;
         var len = player.length;
+        var inJson = false;
         for(var i = 0;i<len;i++){
             var data = player[i];
-            if(i==0)
+            if(data[1] == Global.unionid)
             {
-               this.player_self.set_uid(data[0]);
-               this.player_self.set_unionid(data[1]);
+                inJson = true;
+                switch(len)
+                {
+                    case 1:
+                    {
+                        this.player_self.set_uid(data[0]);
+                        this.player_self.set_unionid(data[1]);
+                    }
+                    break;
+                    case 2:
+                    {
+                        if(i==0)
+                        {
+                            this.player_self.set_uid(data[0]);
+                            this.player_self.set_unionid(data[1]);
+                            var temp = player[1];
+                            this.player_2.set_uid(temp[0]);
+                            this.player_2.set_unionid(temp[1]);
+                        }
+                        else
+                        {
+                            this.player_self.set_uid(data[0]);
+                            this.player_self.set_unionid(data[1]);
+                            var temp = player[0];
+                            this.player_1.set_uid(temp[0]);
+                            this.player_1.set_unionid(temp[1]);
+                        }
+                    }
+                    break;
+                    case 3:
+                    {
+                        if(i==0)
+                        {
+                            this.player_self.set_uid(data[0]);
+                            this.player_self.set_unionid(data[1]);
+                            var temp = player[1];
+                            this.player_2.set_uid(temp[0]);
+                            this.player_2.set_unionid(temp[1]);
+                            temp = player[2];
+                            this.player_1.set_uid(temp[0]);
+                            this.player_1.set_unionid(temp[1]);
+                        }
+                        else if(i==1)
+                        {
+                            this.player_self.set_uid(data[0]);
+                            this.player_self.set_unionid(data[1]);
+                            var temp = player[2];
+                            this.player_2.set_uid(temp[0]);
+                            this.player_2.set_unionid(temp[1]);
+                            temp = player[0];
+                            this.player_1.set_uid(temp[0]);
+                            this.player_1.set_unionid(temp[1]);
+                        }
+                        else
+                        {
+                            this.player_self.set_uid(data[0]);
+                            this.player_self.set_unionid(data[1]);
+                            var temp = player[0];
+                            this.player_2.set_uid(temp[0]);
+                            this.player_2.set_unionid(temp[1]);
+                            temp = player[1];
+                            this.player_1.set_uid(temp[0]);
+                            this.player_1.set_unionid(temp[1]);
+                        }
+                    }
+                    break;
+
+                }
+                break;
             }
-            else if(i==1){
-                this.player_2.set_uid(data[0]);
-                this.player_2.set_unionid(data[1]);
-            }
-            else if(i==2){
-                this.player_1.set_uid(data[0]);
-                this.player_1.set_unionid(data[1]);
-            }
+        }
+        if(!inJson)
+        {
+            Global.messagebox.create_box('记录中不存在玩家自己');
         }
         this.player_self.init2();
         this.player_1.init2();
@@ -298,6 +363,26 @@ export default class RecordManager extends cc.Component {
 
 
     load_record() {
+
+        // //测试
+        // {
+        //     var self = this;
+        //     this.pause = true;
+        //     this.index = 0;
+        //     this.init_game();
+        //     cc.loader.loadRes('record/record.text', function (error, obj) {
+        //         var temp = obj.toString();
+        //         Global.record_data=temp;        
+        //             var temp = Global.record_data;
+        //             self.record_data = temp.split('\n');
+        //             self.switch_record();
+        //             self.pause = false;
+        //             Global.record_data = null;
+                
+        //     }); 
+        //     return;
+        // }    
+
         var self = this;
         this.pause = true;
         this.index = 0;
@@ -333,7 +418,7 @@ export default class RecordManager extends cc.Component {
         else
         {
             var start = 1;
-            var end = temp.length - 2;
+            var end = temp.length - 1;
             temp = temp.substring(start, end);
             start = temp.indexOf(',') + 1;
             end = temp.length;
@@ -351,6 +436,7 @@ export default class RecordManager extends cc.Component {
     }
 
     onMessage(type,msg){
+        console.log(msg);
         var json = JSON.parse(msg);
         console.log(type,json);
         switch(type)

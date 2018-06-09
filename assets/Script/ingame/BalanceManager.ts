@@ -89,6 +89,14 @@ export default class BalanceManager extends cc.Component {
         var len = this.node_items.length;
         var scores = [];
         var balanceRate = this.data_card.balanceRate;  
+        var maxUseCount = this.data_card.maxUseCount;
+        var canUseCount = this.data_card.canUseCount;
+        var maxScore = this.data_card.maxScore;
+        if(InGameManager.instance!=null)
+        {
+            InGameManager.instance.room_jushu_current = maxUseCount - canUseCount + 1;
+            InGameManager.instance.room_jushu_max = maxUseCount;
+        }
         for(var i = 0;i<len;i++)
         {
             var data2 = null;
@@ -116,7 +124,7 @@ export default class BalanceManager extends cc.Component {
                 var name = info.getChildByName('name').getComponent(cc.Label);
                 name.string = player.name_label.string;
                 var node_hushu=item.getChildByName('hushu');
-                node_hushu.getChildByName('Label').getComponent(cc.Label).string = data2.hu+"胡";
+                node_hushu.getChildByName('Label').getComponent(cc.Label).string = maxScore == 0? data2.hu+"胡":(data2.hu>maxScore?maxScore:data2.hu+'胡');
                 var node_paixing = item.getChildByName('paixing');
                 var paixing_string = "";
                 if(data2.type1 && data2.type2)
@@ -141,7 +149,7 @@ export default class BalanceManager extends cc.Component {
 
                 var node_score = item.getChildByName('score');
                 var score_data = {};
-                score_data.hu = data2.hu;
+                score_data.hu = maxScore == 0? data2.hu:(data2.hu>maxScore?maxScore:data2.hu);
                 score_data.player = player;
                 score_data.label = node_score.getChildByName('Label').getComponent(cc.Label);
                 scores.push(score_data);
@@ -329,7 +337,7 @@ export default class BalanceManager extends cc.Component {
 
     back_btn_onclick(){
         if(InGameManager.instance != null)
-        Global.server_connection.svc_closePlatform();
+        ServerConnection.svc_closePlatform();
         else if(RecordManager.instance!=null)
         Global.leave_room();
     }

@@ -25,6 +25,7 @@ export default class Player extends cc.Component {
     node_out: cc.Node = null;
     node_xi: cc.Node = null;
     node_info: cc.Node = null;
+    node_talk:cc.Label = null;
 
     name_label: cc.Label = null;
     node_prepare: cc.Node = null;
@@ -44,6 +45,8 @@ export default class Player extends cc.Component {
 
     public is_maizhuang = false;
 
+    timer = 0;
+
     // LIFE-CYCLE CALLBACKS:
 
     onLoad() {
@@ -60,11 +63,13 @@ export default class Player extends cc.Component {
         this.node_out = this.node.getChildByName('node_out');
         this.node_xi = this.node.getChildByName('node_xipai');
         this.node_info = this.node.getChildByName('node_info');
+        this.node_talk = this.node.getChildByName('node_talk').getComponent(cc.Label);
         this.name_label = this.node_info.getChildByName('name').getComponent(cc.Label);
         this.node_prepare = this.node_info.getChildByName('prepare');
         this.node_maizhuang = this.node_info.getChildByName('maizhuang');
         this.num_label = this.node_info.getChildByName('num').getComponent(cc.Label);
         this.icon = this.node_info.getComponent(cc.Sprite);
+        this.timer = 0;
 
         //////////////////////test
         //this.set_data_shou([1,2,3,4,5,6]);
@@ -224,7 +229,7 @@ export default class Player extends cc.Component {
         if(this.data_select==null)
            return;
         Global.soundmanager.play_chupai_sound(this.data_select);
-        Global.server_connection.svc_send(CLIENT_MSG.CM_CHU_PAI,{pai:this.data_select});
+        ServerConnection.svc_send(CLIENT_MSG.CM_CHU_PAI,{pai:this.data_select});
     }
 
 
@@ -418,6 +423,29 @@ export default class Player extends cc.Component {
                 children[i].active = false;
             }
             index++;
+        }
+    }
+
+    fanzhuan(){
+        if(InGameManager.instance!=null)
+        {
+            var rot = 0;
+            if(InGameManager.icon_fanzhuan)
+            {
+                rot = 180;
+            }
+            for(var i = 0;i<this.node_own.children.length;i++)
+            {
+                this.node_own.children[i].rotation = rot;
+            }
+            for(var i = 0;i<this.node_out.children.length;i++)
+            {
+                this.node_out.children[i].rotation = rot;
+            }
+            for(var i = 0;i<this.node_xi.children.length;i++)
+            {
+                this.node_xi.children[i].rotation = rot;
+            }
         }
     }
 
@@ -622,6 +650,21 @@ export default class Player extends cc.Component {
         return false;
     }
 
+    add_talk_msg(msg)
+    {
+        this.timer = 5;
+        this.node_talk.string = msg;
+    }
 
-    // update (dt) {},
+
+    update (dt) {
+      if(this.timer>0)
+      this.timer -= dt;
+      else
+      {
+          this.timer =0;
+          if(this.node_talk.string!='')
+          this.node_talk.string = '';
+      }
+    }
 }

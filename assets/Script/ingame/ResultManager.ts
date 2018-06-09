@@ -139,9 +139,16 @@ export default class NewClass extends cc.Component {
 
     back_btn_onclick(){
         if(InGameManager.instance != null)
-        Global.server_connection.svc_closePlatform();
+        {
+            window.callStaticMethod(0, 'cocosLog:InGameManager is not null');
+            ServerConnection.svc_closePlatform();
+        }
         else if(RecordManager.instance!=null)
-        Global.leave_room();
+        {
+            window.callStaticMethod(0, 'cocosLog:RecordManager is not null');
+            Global.leave_room();
+        }
+        
     }
 
     share_btn_onclick(){

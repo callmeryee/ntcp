@@ -7,7 +7,6 @@
 // Learn life-cycle callbacks:
 //  - [Chinese] http://www.cocos.com/docs/creator/scripting/life-cycle-callbacks.html
 //  - [English] http://www.cocos2d-x.org/docs/editors_and_tools/creator-chapters/scripting/life-cycle-callbacks/index.html
-var server_connetcion = require("ServerConnection");
 cc.Class({
     extends: cc.Component,
 
@@ -17,12 +16,14 @@ cc.Class({
         node_totle: cc.Node,
         node_multiple: cc.Node,
         node_xipai: cc.Node,
+        node_fengding:cc.Node,
         node_pay: cc.Node,
 
         playCount: null,
         payType: null,
         balanceRate: null,
         includexi: null,
+        fengding:null,
         forceNew: null,
 
         timer:0,
@@ -71,9 +72,10 @@ cc.Class({
         this.playCount = this.set_playCount();
         this.balanceRate = this.set_balanceRate();
         this.payType = this.setPayType();
-        this.includexi = true;
+        this.fengding = this.setFengDing();
+        this.includexi = this.set_includexi();
         this.forceNew = true;
-        server_connetcion.create_room(this.playCount, this.payType, this.balanceRate, this.includexi);
+        ServerConnection.create_room(this.playCount, this.payType, this.balanceRate, this.includexi,this.fengding);
         this.timer = 3;
     },
 
@@ -85,6 +87,12 @@ cc.Class({
                 return i;
             }
         }
+    },
+
+
+    set_includexi(){
+        var index = this.get_data(this.node_xipai);
+        return index == 0?true:false;
     },
 
     set_playCount() {
@@ -160,6 +168,19 @@ cc.Class({
             break;
         }
         
+    },
+
+    setFengDing(){
+        var index = this.get_data(this.node_fengding);
+        switch(index)
+        {
+            case 0:
+            return 0;
+            case 1:
+            return 500;
+            case 2:
+            return 800;
+        }
     },
 
     get_balanceRate(value) {

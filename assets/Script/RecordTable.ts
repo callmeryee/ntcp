@@ -11,7 +11,6 @@ import GlobalStatic from "./GlobalStatic";
 //  - [English] http://www.cocos2d-x.org/docs/editors_and_tools/creator-chapters/scripting/life-cycle-callbacks/index.html
 
 
-var server_connetcion = require("ServerConnection");
 
 const {ccclass, property} = cc._decorator;
 
@@ -47,7 +46,7 @@ export default class NewClass extends cc.Component {
         {
             this.container.children[i].active = false;
         }
-        server_connetcion.get_record(this.uid,this.daycount);
+        ServerConnection.get_record(this.uid,this.daycount);
         this.node.active = true;
     }
 
@@ -60,7 +59,10 @@ export default class NewClass extends cc.Component {
     }
 
     record_onclick(index){
-       server_connetcion.get_card_record(this.json[index].cardid);
+        //测试
+        // cc.director.loadScene("record");
+        // return;
+        ServerConnection.get_card_record(this.json[index].cardid);
     }
 
     deal_record(json){

@@ -1,5 +1,4 @@
 
-var server_connection = require("ServerConnection");
 cc.Class({
     extends: cc.Component,
 
@@ -60,7 +59,7 @@ cc.Class({
             if(len+1 == 6)
             {
                 Global.room_uid = text;
-                server_connection.enter_room();
+                ServerConnection.enter_room();
             }
         }
     },

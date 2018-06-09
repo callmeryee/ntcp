@@ -1,7 +1,6 @@
 
 //const i18n = require('i18n');
 //i18n.init('zh');
-var server_connection = require("ServerConnection");
 cc.Class({
 	extends: cc.Component,
 
@@ -44,9 +43,11 @@ cc.Class({
 	},
 
 	onLoad () {
+		window.callStaticMethod(0, 'cocosLog:lobby onloaded');
 		Global.lobby = this;
 		this.reset();
 		this.setLobbyInfo();
+		window.callStaticMethod(0, 'cocosLog:lobby inited');
 	},
 
 	reset:function(){
@@ -90,7 +91,7 @@ cc.Class({
 
 	back_btn_onclick:function(){
 		Global.soundmanager.play_button_click();
-		cc.director.loadScene("login");
+		Global.loadScene("login");
 	},
 
 	deal_record:function(json){
