@@ -1029,7 +1029,6 @@ export default class InGameManager extends cc.Component {
                 break;
             }
         }
-        Global.soundmanager.play_sound2('putong_19');
     } 
 
     auto_chupai() {
