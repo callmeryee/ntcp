@@ -47,7 +47,6 @@ cc.Class({
 		Global.lobby = this;
 		this.reset();
 		this.setLobbyInfo();
-		window.callStaticMethod(0, 'cocosLog:lobby inited');
 	},
 
 	reset:function(){

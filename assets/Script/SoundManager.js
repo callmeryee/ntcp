@@ -116,6 +116,7 @@ cc.Class({
     },
 
     play_sound2:function(name){
+        console.log(name);
         var sound_name = this.is_girl_sound()+name;
         this.play_sound(sound_name);
     },

@@ -97,6 +97,11 @@ export default class BalanceManager extends cc.Component {
             InGameManager.instance.room_jushu_current = maxUseCount - canUseCount + 1;
             InGameManager.instance.room_jushu_max = maxUseCount;
         }
+        else if(RecordManager.instance!=null)
+        {
+            RecordManager.instance.room_jushu_current = maxUseCount - canUseCount + 1;
+            RecordManager.instance.room_jushu_max = maxUseCount;
+        }
         for(var i = 0;i<len;i++)
         {
             var data2 = null;
@@ -330,9 +335,10 @@ export default class BalanceManager extends cc.Component {
 
 
     continue_btn_onclick(){
-        if(InGameManager.instance == null)
-        return;
+        if(InGameManager.instance != null)
         InGameManager.instance.init_game(); 
+        else if(RecordManager.instance!=null)
+        RecordManager.instance.continue_btn_onclick();
     }
 
     back_btn_onclick(){

@@ -75,7 +75,6 @@ export default class InGameManager extends cc.Component {
         InGameManager.instance = this;
 
         this.node_menu = this.node.getChildByName('node_menu');
-        this.node_fanzhuan = this.node.getChildByName('')
         this.balance = this.node.getChildByName('node_balance').getComponent('BalanceManager');
         this.result = this.node.getChildByName('node_result').getComponent('ResultManager');
         this.balance.init();
@@ -128,10 +127,6 @@ export default class InGameManager extends cc.Component {
             this.yuan_btn_onclick();
         }, this);
 
-        var yuan_btn = node_buttons.getChildByName('yuan_btn');
-        yuan_btn.on('click', function (event) {
-            this.yuan_btn_onclick();
-        }, this);
 
         var GPS_btn = node_buttons.getChildByName('GPS_btn');
         GPS_btn.on('click', function (event) {
@@ -256,7 +251,7 @@ export default class InGameManager extends cc.Component {
         this.set_node_count_label(0);
         this.set_jiangpai_data(null);
         this.set_middle_data(null);
-        this.show_game_btns([1]);
+        this.show_game_btns([0,1]);
         this.show_order_btns([]);
         if (Global.room_uid != null)
             this.node_room_id.string = "房号" + Global.room_uid;
@@ -503,8 +498,11 @@ export default class InGameManager extends cc.Component {
         this.node_menu.active = false;
     }
 
+    //1：文字  2：图片 3：音乐 4：视频 5：网页
     invite_btn_onclick() {
-        console.log('invite_btn on click');
+        var ret = Global.nickname+"邀请你对战，"+this.node_room_info.string+";共"+ this.room_jushu_max+"局";
+        var room_id_string = this.node_room_id.string;
+        window.callStaticMethod(3,{type:1, title:"人人南通长牌",description:"大家一起来",info:ret,room_id:room_id_string,scene:0,url:""});
     }
 
     play_btn_onclick() {
@@ -692,7 +690,7 @@ export default class InGameManager extends cc.Component {
             if (json.state == State.IN_READY.toString())
                 this.show_game_btns([]);
             else
-                this.show_game_btns([1]);
+                this.show_game_btns([0,1]);
         }
     }
 

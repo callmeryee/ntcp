@@ -427,12 +427,21 @@ export default class Player extends cc.Component {
     }
 
     fanzhuan(){
-        if(InGameManager.instance!=null)
-        {
+
             var rot = 0;
-            if(InGameManager.icon_fanzhuan)
+            if(InGameManager.instance!=null)
             {
-                rot = 180;
+                if(InGameManager.icon_fanzhuan)
+                {
+                    rot = 180;
+                }
+            }
+            else if(RecordManager.instance!=null)
+            {
+                if(RecordManager.icon_fanzhuan)
+                {
+                    rot = 180;
+                }
             }
             for(var i = 0;i<this.node_own.children.length;i++)
             {
@@ -446,7 +455,6 @@ export default class Player extends cc.Component {
             {
                 this.node_xi.children[i].rotation = rot;
             }
-        }
     }
 
     sort_node_own() {

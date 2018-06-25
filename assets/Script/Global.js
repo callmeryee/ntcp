@@ -305,6 +305,11 @@ var Global = {
     headimgurl: '',
     headicon: null,
 
+    location:null, //位置信息
+    latitude:null, //纬度
+    longitude:null, //经度
+    radius:null,//定位精度
+
     nickname: '游客',
     unionid: null,
     openid: null,
