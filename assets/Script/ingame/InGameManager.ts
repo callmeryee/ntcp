@@ -4,6 +4,7 @@ import BalanceManager from "./BalanceManager";
 import ResultManager from "./ResultManager";
 import TimeManager from "./TimeManager";
 import ChatManager from "./ChatManager";
+import GPSManager from "./GPSManager";
 
 // Learn TypeScript:
 //  - [Chinese] http://www.cocos.com/docs/creator/scripting/typescript.html
@@ -66,6 +67,8 @@ export default class InGameManager extends cc.Component {
     result: ResultManager = null;
 
     chat:ChatManager = null;
+
+    gps:GPSManager = null;
 
     room_jushu_max = null;
     room_jushu_current = null;
@@ -193,6 +196,10 @@ export default class InGameManager extends cc.Component {
         this.time = node_body.getChildByName('node_time').getComponent('TimeManager');
         this.chat = this.node.getChildByName('node_chat').getComponent('ChatManager');
         this.chat.hide();
+
+        this.gps = this.node.getChildByName('node_GPS').getComponent('GPSManager');
+        this.gps.init();
+        this.gps.hide();
     }
 
     start() {
@@ -484,7 +491,10 @@ export default class InGameManager extends cc.Component {
     }
 
     GPS_btn_onclick() {
-
+        if(this.player_self.getState() == State.IN_GAME)
+        {
+            this.gps.show();
+        }
     }
 
     menu_btn_hide() {
@@ -732,6 +742,26 @@ export default class InGameManager extends cc.Component {
         this.player_self.set_prepare();
 
         this.show_maizhuang(json);
+
+        this.broadcast_location();
+    }
+
+    broadcast_location(){
+        if(Global.location!=null)
+        {
+            var msg = {
+                location:Global.location,
+                latitude:Global.latitude,
+                longitude:Global.longitude,
+                radius:Global.radius
+            }
+            ServerConnection.svc_send(CLIENT_MSG.CM_BROADCAST,{type:3,msg:msg}); 
+        }
+        else
+        {
+            Global.log("Global.location = null");
+        }
+        
     }
 
     set_start_game_msg(json) {
@@ -1025,6 +1055,10 @@ export default class InGameManager extends cc.Component {
                     player.add_talk_msg(decodeURIComponent(msg.msg));
                 }
                 break;
+                case 3:
+                {
+                    player.location = msg.msg;
+                }
             }
         }
     } 

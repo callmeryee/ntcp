@@ -80,7 +80,7 @@ cc.Class({
             window.callStaticMethod(4, {});
         }
         else
-            get_location(null);
+            this.get_location(null);
     },
 
     get_location: function (msg) {
@@ -92,8 +92,15 @@ cc.Class({
                 Global.latitude = msg.msg.latitude;
                 Global.longitude = msg.msg.longitude;
                 Global.radius = msg.msg.radius;
-                window.callStaticMethod(0,Global.location);
             }
+            else
+            {            
+                Global.log("msg.error != 161");
+            }
+        }
+        else
+        {
+            Global.log("local_msg == null");
         }
  
 

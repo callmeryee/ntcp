@@ -25,7 +25,7 @@ cc.Class({
         this.node.setGlobalZOrder(1000);
         if(cc.sys.isNative)
         {
-            this.show_btn.node.active = false;
+           this.show_btn.node.active = false;
         }
     },
 

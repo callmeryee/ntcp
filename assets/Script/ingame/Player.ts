@@ -15,6 +15,8 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class Player extends cc.Component {
 
+    location:any = null;
+    
     public data_info:any = null;
     data_shou: Array<number> = [];
     data_di: Array<number> = [];
@@ -269,6 +271,16 @@ export default class Player extends cc.Component {
         {
             this.data_info.state = tag.toString();
         }
+    }
+
+    public getState()
+    {
+        if (this.data_info != null)
+        {
+            return this.data_info.state; 
+        }
+        else
+            return null;
     }
 
     public init2(){
