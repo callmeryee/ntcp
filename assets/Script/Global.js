@@ -6,13 +6,13 @@ var common = require("Common");
 var ServerConnection = {
     openid: "123456",
 
-    // ip: "http://192.168.2.103:9800/public",
-    // wsServer: "ws://192.168.2.103:9300",
-    // record_url: "http://192.168.2.110:8080/record/",
+    ip: "http://192.168.2.103:9800/public",
+    wsServer: "ws://192.168.2.103:9300",
+    record_url: "http://192.168.2.110:8080/record/",
 
-    ip: "http://ntcp.wohnb.com/ntcp",
-    wsServer: "ws://ntcp.wohnb.com:9500",
-    record_url: "http://ntcp.wohnb.com/record/",
+    // ip: "http://ntcp.wohnb.com/ntcp",
+    // wsServer: "ws://ntcp.wohnb.com:9500",
+    // record_url: "http://ntcp.wohnb.com/record/",
 
 
     svc_websocket: null,
@@ -274,6 +274,19 @@ var ServerConnection = {
                         InGameManager.instance.on_broadcast_msg(json.msg);
                 }
                 break;
+                case SERVER_MSG.SM_DISMISS_GAME:
+                {
+                    if (InGameManager.instance)
+                        InGameManager.instance.on_dismiss_game_msg(json.msg);
+                }
+                break;
+
+                 case SERVER_MSG.SM_DISMISS_GAME_RESULT:
+                {
+                    if (InGameManager.instance)
+                        InGameManager.instance.on_dismiss_game_result_msg(json.msg);
+                }
+                break;  
         }
     },
 
@@ -298,7 +311,11 @@ window.ServerConnection = ServerConnection
 
 var Global = {
 
+    game_app:null,
+
     AppId: 'wx278464a99e02e646',
+    authorize_after_registerApp:false,
+    local_unionid:null,
 
     common: null,
 
@@ -394,7 +411,7 @@ var Global = {
     init_login: function (json) {
 
         if (json.error != null) {
-            this.messagebox.create_box(json.error);
+            this.messagebox.create_box("账号信息错误");
             return;
         }
         //console.log('用户信息:',json);
@@ -421,7 +438,22 @@ var Global = {
 
     init_room: function (json) {
         if (json.error != null) {
-            this.messagebox.create_box(json.error);
+
+            switch(json.error)
+            {
+                case "ERROR_USER_STATE_INROOM":
+                {
+                    var text = "当前房间未正常退出，房号 "+json.msg
+                    this.messagebox.create_box(text);
+                }
+                break;
+                default:
+                {
+                    this.messagebox.create_box(json.error);
+                }
+                break;
+            }
+
             return;
         }
         if (json.roomid == null)
@@ -471,7 +503,22 @@ var Global = {
     on_enter_room_msg: function (json) {
         if (json.error) {
             this.room_data = null;
-            this.messagebox.create_box(json.error);
+
+            switch(json.error)
+            {
+                case "ERROR_USER_STATE_INROOM":
+                {
+                    var text = "当前房间未正常退出，房号 "+json.msg
+                    this.messagebox.create_box(text);
+                }
+                break;
+                default:
+                {
+                    this.messagebox.create_box(json.error);
+                }
+                break;
+            }
+         
             return;
         }
         if (json.self)
@@ -600,6 +647,7 @@ var CLIENT_MSG;
     CLIENT_MSG[CLIENT_MSG["CM_HUAN_PAI"] = 7] = "CM_HUAN_PAI";
     CLIENT_MSG[CLIENT_MSG["CM_MAI_ZHUANG"] = 8] = "CM_MAI_ZHUANG";
     CLIENT_MSG[CLIENT_MSG["CM_BROADCAST"] = 9] = "CM_BROADCAST";
+    CLIENT_MSG[CLIENT_MSG["CM_DISMISS_GAME"] = 10] = "CM_DISMISS_GAME";
 })(CLIENT_MSG || (CLIENT_MSG = {}));
 var SERVER_MSG;
 (function (SERVER_MSG) {
@@ -617,6 +665,8 @@ var SERVER_MSG;
     SERVER_MSG[SERVER_MSG["SM_SYNC_ROOM_STATE"] = 11] = "SM_SYNC_ROOM_STATE";
     SERVER_MSG[SERVER_MSG["SM_MAI_ZHUANG"] = 12] = "SM_MAI_ZHUANG";
     SERVER_MSG[SERVER_MSG["SM_BROADCAST"] = 13] = "SM_BROADCAST";
+    SERVER_MSG[SERVER_MSG["SM_DISMISS_GAME"] = 14] = "SM_DISMISS_GAME";
+    SERVER_MSG[SERVER_MSG["SM_DISMISS_GAME_RESULT"] = 15] = "SM_DISMISS_GAME_RESULT";
 })(SERVER_MSG || (SERVER_MSG = {}));
 
 var State = {

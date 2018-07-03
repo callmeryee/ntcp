@@ -351,6 +351,7 @@ export default class BalanceManager extends cc.Component {
     share_btn_onclick(){
         if(InGameManager.instance == null)
         return;
+        Global.game_app.shareScreenshot();
     }
 
 

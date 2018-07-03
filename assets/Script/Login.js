@@ -9,43 +9,6 @@
 //  - [English] http://www.cocos2d-x.org/docs/editors_and_tools/creator-chapters/scripting/life-cycle-callbacks/index.html
 
 
-//0：日志 1:注册appid 2：授权 3分享 4定位
-window.OnNativeResponse = function (type, msg) {
-    window.callStaticMethod(0, msg);
-    if (type == 1) {
-        if (msg.error == 0) {
-            window.callStaticMethod(2, {});
-        }
-    }
-    else if (type == 2) {
-        if (msg.error == 0) {
-            var code = msg.msg.code;
-            if (code != null) {
-                ServerConnection.login(code, '123', true);
-            }
-        }
-    }
-    else if (type == 4) {
-        Global.login.get_location(msg);
-    }
-    //分享
-    //window.callStaticMethod(3,{title:"人人长牌",description:"大家一起来",type:0})
-}
-
-window.OnLocationResponse = function (type, msg) {
-    if (type == 4) {
-        Global.login.get_location(msg);
-    }
-}
-
-window.callStaticMethod = function (type, msg) {
-    if (cc.sys.os == cc.sys.OS_IOS) {
-        jsb.reflection.callStaticMethod("AppController", "callNativeWithType:andMessage:", type, JSON.stringify(msg));
-    }
-    else if (cc.sys.os == cc.sys.OS_ANDROID) {
-        jsb.reflection.callStaticMethod("com/heretry/ntcp/AppActivity", "callNative", "(ILjava/lang/String;)V", type, JSON.stringify(msg));
-    }
-}
 
 cc.Class({
     extends: cc.Component,
@@ -62,36 +25,45 @@ cc.Class({
         Global.login = this;
         this.random_btn.active = !cc.sys.isNative;
 
-        // cc.game.onStop = function () {
-        //     ServerConnection.svc_closePlatform();
-        //     cc.log("stopApp");
-        // }
+        if (cc.sys.isNative && Global.location == null) {
+            window.callStaticMethod(4, {});
+        }           
     },
 
-
-    onopen(evt) {
-        console.log(evt);
-    },
 
     login_onclick: function () {
 
         Global.soundmanager.play_button_click();
-        if (cc.sys.isNative && Global.location == null) {
-            window.callStaticMethod(4, {});
+
+        if (cc.sys.isNative) {
+            Global.local_unionid = cc.sys.localStorage.getItem('local_unionid');
+            if (Global.local_unionid && Global.local_unionid != '') {
+                Global.authorize_after_registerApp = false;
+                window.callStaticMethod(1, { appid: Global.AppId });
+            }
+            else
+            {
+                Global.authorize_after_registerApp = true;
+                window.callStaticMethod(1, { appid: Global.AppId });
+            }
+                
         }
-        else
-            this.get_location(null);
+        else {
+            //ServerConnection.login('123', 'oUQtWxNbxtl6WrywgcMSGzBpezRo', false);
+            ServerConnection.login('123', 'testuid76827', false);
+        }
+
     },
 
     get_location: function (msg) {
 
         if (msg!=null) {
-            if(msg.error == 161)
+            if(msg.error == 0)
             {
                 Global.location = msg.msg.addr;
                 Global.latitude = msg.msg.latitude;
                 Global.longitude = msg.msg.longitude;
-                Global.radius = msg.msg.radius;
+               // Global.radius = msg.msg.radius;
             }
             else
             {            
@@ -103,21 +75,6 @@ cc.Class({
             Global.log("local_msg == null");
         }
  
-
-        if (cc.sys.isNative) {
-            var local_unionid = cc.sys.localStorage.getItem('local_unionid');
-            if (local_unionid && local_unionid != '') {
-                ServerConnection.login('123', local_unionid, false);
-            }
-            else
-            {
-                window.callStaticMethod(1, { appid: Global.AppId });
-            }
-                
-        }
-        else {
-            ServerConnection.login('123', 'oUQtWxNbxtl6WrywgcMSGzBpezRo', false);
-        }
     },
 
     random_onclick: function () {
@@ -136,25 +93,6 @@ cc.Class({
 
     address_cancle_onclick: function () {
         this.address_node.active = false;
-    },
-
-
-    update(dt) {
-        if (cc.sys.isNative) {
-            if (cc.sys.os == cc.sys.OS_ANDROID) {
-                var script = jsb.reflection.callStaticMethod("com/heretry/ntcp/AppActivity", "readLastScript", "()Ljava/lang/String;");
-                if (script != "") {
-                    // window.callStaticMethod(0,script);
-                    eval(script);
-                }
-
-                var script2 = jsb.reflection.callStaticMethod("com/heretry/ntcp/AppActivity", "readLocationScript", "()Ljava/lang/String;");
-                if (script2 != "") {
-                    // window.callStaticMethod(0,script);
-                    eval(script2);
-                }
-            }
-        }
     },
 
 });

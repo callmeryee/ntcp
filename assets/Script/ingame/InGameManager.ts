@@ -45,6 +45,8 @@ export default class InGameManager extends cc.Component {
     node_room_jushu: cc.Label = null;
 
     node_menu: cc.Node = null;
+    dismiss_game_button:cc.Node = null;
+    leave_room_button:cc.Node = null;
 
     player_1: Player = null;
     player_2: Player = null;
@@ -72,12 +74,19 @@ export default class InGameManager extends cc.Component {
 
     room_jushu_max = null;
     room_jushu_current = null;
+
+
     // LIFE-CYCLE CALLBACKS:
 
     onLoad() {
         InGameManager.instance = this;
 
         this.node_menu = this.node.getChildByName('node_menu');
+        this.node_menu.active = false;
+        this.dismiss_game_button = this.node_menu.getChildByName('button').getChildByName('dismiss_game_btn');
+        this.dismiss_game_button.active = false;
+        this.leave_room_button = this.node_menu.getChildByName('button').getChildByName('leave_room_btn');
+
         this.balance = this.node.getChildByName('node_balance').getComponent('BalanceManager');
         this.result = this.node.getChildByName('node_result').getComponent('ResultManager');
         this.balance.init();
@@ -502,6 +511,11 @@ export default class InGameManager extends cc.Component {
         this.node_menu.active = false;
     }
 
+    dismiss_game_btn_onclick(){
+        ServerConnection.svc_send(CLIENT_MSG.CM_DISMISS_GAME,{});
+        this.node_menu.active = false;
+    }
+
     leave_room_btn_onclick(){
         ServerConnection.svc_send(CLIENT_MSG.CM_LEAVE_ROOM,{});
         ServerConnection.svc_closePlatform();
@@ -510,9 +524,9 @@ export default class InGameManager extends cc.Component {
 
     //1：文字  2：图片 3：音乐 4：视频 5：网页
     invite_btn_onclick() {
-        var ret = Global.nickname+"邀请你对战，"+this.node_room_info.string+";共"+ this.room_jushu_max+"局";
-        var room_id_string = this.node_room_id.string;
-        window.callStaticMethod(3,{type:1, title:"人人南通长牌",description:"大家一起来",info:ret,room_id:room_id_string,scene:0,url:""});
+        var description = Global.nickname+"邀请你对战，"+this.node_room_info.string+";共"+ this.room_jushu_max+"局";
+        var title = "人人南通长牌" + " " + this.node_room_id.string;
+        window.callStaticMethod(3,{type:2, title:title,description:description,message:description,scene:0,url:"http://www.baidu.com"});
     }
 
     play_btn_onclick() {
@@ -733,6 +747,9 @@ export default class InGameManager extends cc.Component {
             return;
         }
 
+        this.dismiss_game_button.active =true;
+        this.leave_room_button.active = false;
+
         this.player_1.setState(State.IN_GAME);
         this.player_2.setState(State.IN_GAME);
         this.player_self.setState(State.IN_GAME);
@@ -753,7 +770,7 @@ export default class InGameManager extends cc.Component {
                 location:Global.location,
                 latitude:Global.latitude,
                 longitude:Global.longitude,
-                radius:Global.radius
+              //  radius:Global.radius
             }
             ServerConnection.svc_send(CLIENT_MSG.CM_BROADCAST,{type:3,msg:msg}); 
         }
@@ -1063,6 +1080,32 @@ export default class InGameManager extends cc.Component {
         }
     } 
 
+    dismiss_room_box = null;
+    on_dismiss_game_msg(json){
+        var player = this.getPlayerByID(json.uid);
+        if(player!=null)
+        {
+            var text = "玩家 " + player.data_info.info.nick + " 申请解散房间，请问是否同意？（倒计时结束未选择，则默认同意解散）";
+            this.dismiss_room_box = Global.messagebox.create_box_confirm(text,function(ret){
+                ServerConnection.svc_send(CLIENT_MSG.CM_DISMISS_GAME,{dismiss:ret});
+            });
+        }
+        
+    }
+
+    on_dismiss_game_result_msg(json){
+        if(!json.dismiss)
+        {
+            if(this.dismiss_room_box!=null)
+            {
+                this.dismiss_room_box.destroy();
+            }
+            var text = "解散房间失败。";
+            Global.messagebox.create_box(text);
+        }
+    }
+
+
     auto_chupai() {
         if (InGameManager.instance == null)
             return;
@@ -1078,6 +1121,9 @@ export default class InGameManager extends cc.Component {
         this.player_self.check_pai_same(value);
     }
 
+
+
+    
 
 
 

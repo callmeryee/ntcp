@@ -3833,7 +3833,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 80,
+      "width": 73,
       "height": 80
     },
     "_rotationX": 0,
@@ -4236,7 +4236,7 @@
       }
     ],
     "_tag": -1,
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 298
@@ -12765,6 +12765,7 @@
     "payType": null,
     "balanceRate": null,
     "includexi": null,
+    "fengding": null,
     "forceNew": null,
     "timer": 0
   },

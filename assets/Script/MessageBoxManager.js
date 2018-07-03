@@ -9,14 +9,14 @@
 //  - [English] http://www.cocos2d-x.org/docs/editors_and_tools/creator-chapters/scripting/life-cycle-callbacks/index.html
 
 
-
 cc.Class({
     extends: cc.Component,
 
     properties: {
         clone:cc.Node,
+        clone2:cc.Node,
     },
-
+    
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
@@ -48,7 +48,79 @@ cc.Class({
         obj.active = true;
     },
 
-    close_box:function(){
-       
+    
+
+    create_box_confirm:function (text,callback) {
+
+            var obj = cc.instantiate(this.clone2);
+            var close = obj.getChildByName("close");
+            var confirm = obj.getChildByName("confirm");
+            var time_label = obj.getChildByName("time").getComponent(cc.Label);  
+            time_label.string = "";
+            var t = 100;
+            var stop_timer = false;
+            function timer()
+            {
+                time_label.string = t;
+                setTimeout(() => {
+                    t-=1;
+
+                    if(obj == null)
+                    {
+                        callback = null;
+                        return;
+                    }
+
+                    if(t>0 && !stop_timer)
+                    {
+                        timer(); 
+                    }
+                    else
+                    {
+                        if(callback)
+                        {
+                            callback(true);
+                            callback = null;
+                        }
+                        if(obj!=null)
+                        {
+                            obj.destroy();
+                        }
+                    }
+                }, 1000);
+            }
+        
+            timer();
+
+            close.on('click', function (event) {
+                stop_timer = true;
+                if(callback)
+                {
+                    callback(false);
+                    callback = null;
+                }
+                this.destroy();
+            }, obj);
+
+            confirm.on('click',function(event){
+                stop_timer = true;
+                if(callback)
+                {
+                    callback(true);
+                    callback = null;
+                }
+                this.destroy();
+            },obj);
+    
+            obj.getChildByName("text").getComponent(cc.Label).string = text;
+            obj.parent = this.node;
+            obj.scaleX=1;
+            obj.scaleY=1;
+            obj.rotation = 0;
+            obj.active = true;
+
+            return obj;
     },
+
+
 });
