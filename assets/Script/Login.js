@@ -14,6 +14,8 @@ cc.Class({
     extends: cc.Component,
 
     properties: {
+        player1_btn:cc.Node,
+        player2_btn:cc.Node,
         random_btn: cc.Node,
         address_node: cc.Node,
         http_address: cc.EditBox,
@@ -24,6 +26,8 @@ cc.Class({
 
         Global.login = this;
         this.random_btn.active = !cc.sys.isNative;
+        this.player1_btn.active = !cc.sys.isNative;
+        this.player2_btn.active = !cc.sys.isNative;
 
         if (cc.sys.isNative && Global.location == null) {
             window.callStaticMethod(4, {});
@@ -49,10 +53,18 @@ cc.Class({
                 
         }
         else {
-            //ServerConnection.login('123', 'oUQtWxNbxtl6WrywgcMSGzBpezRo', false);
-            ServerConnection.login('123', 'testuid76827', false);
+             ServerConnection.login('123', 'oUQtWxNbxtl6WrywgcMSGzBpezRo', false);
+            //ServerConnection.login('123', 'testuid54515', false);
         }
 
+    },
+
+    player1_onclick:function(){
+        ServerConnection.login('123', 'oUQtWxDOWvhp9xn0BULWPjCEvjQE', false);
+    },
+
+    player2_onclick:function(){
+        ServerConnection.login('123', 'oUQtWxH0lhVwlo_F6ehB0oKtVvmw', false);
     },
 
     get_location: function (msg) {

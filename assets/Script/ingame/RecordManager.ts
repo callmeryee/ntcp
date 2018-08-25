@@ -63,12 +63,13 @@ export default class RecordManager extends cc.Component {
     room_jushu_current = null;
 
     // LIFE-CYCLE CALLBACKS:
-    
     wait_time = 5;
+
     timer:number = 0;
     index:number = 0;
     pause:boolean = true;
     is_new:boolean = false;
+    is_speed_up = false;
 
     last_msg_type = null;
 
@@ -85,6 +86,8 @@ export default class RecordManager extends cc.Component {
            this.switch_record();
        }
     }
+
+
 
     onLoad () {
         RecordManager.instance = this;
@@ -146,6 +149,26 @@ export default class RecordManager extends cc.Component {
             this.GPS_btn_onclick();
         }, this);
 
+        var speedup_btn = this.node.getChildByName('speed_up');
+
+        speedup_btn.on(cc.Node.EventType.TOUCH_START,function(event){
+            this.wait_time = 1; 
+            this.is_speed_up = true; 
+            this.timer = 0.5;  
+            console.log('speed up = true') ;   
+        },this);
+
+        speedup_btn.on(cc.Node.EventType.TOUCH_END,function(event){
+            this.wait_time = 5;  
+            this.is_speed_up = false;      
+            console.log('speed up = false') ;
+        },this);
+
+        speedup_btn.on(cc.Node.EventType.TOUCH_CANCEL,function(event){
+            this.wait_time = 5;  
+            this.is_speed_up = false;     
+            console.log('speed up = false') ; 
+        },this);
 
         var putongpaixu_btn = node_buttons.getChildByName('putongpaixu_btn');
         putongpaixu_btn.on('click', function (event) {
@@ -185,7 +208,10 @@ export default class RecordManager extends cc.Component {
         this.show_order_btns([]);
         this.clear_player();
         this.set_jushu();
+        if(!this.is_speed_up)
         this.wait_time = 5;
+        else
+        this.wait_time = 1;
     }
 
     init_room_info() {
@@ -305,21 +331,41 @@ export default class RecordManager extends cc.Component {
     }
 
     public set_card_data(node: cc.Node, data: any) {
-        var icon_name = this.get_card_icon_name(data.type, data.value);
-        var frame = RecordManager.instance.pai_atlas.getSpriteFrame(icon_name);
-        var sprite = node.getComponent(cc.Sprite);
-        if (sprite != null)
-            sprite.spriteFrame = frame;
-        var children = node.children;
-        for (var i = 0; i < children.length; i++) {
-            sprite = children[i].getComponent(cc.Sprite);
+
+        if(data == null)
+        {
+            var sprite = node.getComponent(cc.Sprite);
             if (sprite != null)
-                sprite.spriteFrame = frame;
-            if (children[i].childrenCount > 0) {
-                children[i].children[0].active = data.tag == RecordManager.instance.data_new_card;
+            {
+                sprite.enabled = false;
             }
-            children[i].active = i < data.count;
+            var children = node.children;
+            for (var i = 0; i < children.length; i++) {        
+                children[i].active = false;
+            }
         }
+        else
+        {
+            var icon_name = this.get_card_icon_name(data.type, data.value);
+            var frame = RecordManager.instance.pai_atlas.getSpriteFrame(icon_name);
+            var sprite = node.getComponent(cc.Sprite);
+            if (sprite != null)
+            {
+                sprite.enabled = true;
+                sprite.spriteFrame = frame;
+            }
+            var children = node.children;
+            for (var i = 0; i < children.length; i++) {
+                sprite = children[i].getComponent(cc.Sprite);
+                if (sprite != null)
+                    sprite.spriteFrame = frame;
+                if (children[i].childrenCount > 0) {
+                    children[i].children[0].active = data.tag == RecordManager.instance.data_new_card;
+                }
+                children[i].active = i < data.count;
+            }
+        }
+       
     }
 
     get_card_icon_name(type, value) {
@@ -400,7 +446,7 @@ export default class RecordManager extends cc.Component {
         var inJson = false;
         for(var i = 0;i<len;i++){
             var data = player[i];
-            if(data[1] == Global.unionid)
+            if( data[1].unionid == Global.unionid)
             {
                 inJson = true;
                 switch(len)
@@ -408,7 +454,9 @@ export default class RecordManager extends cc.Component {
                     case 1:
                     {
                         this.player_self.set_uid(data[0]);
-                        this.player_self.set_unionid(data[1]);
+                        this.player_self.set_unionid(data[1].unionid);
+                        this.player_self.set_icon(data[1].imgurl);
+                        this.player_self.set_name(data[1].nick);
                     }
                     break;
                     case 2:
@@ -416,18 +464,28 @@ export default class RecordManager extends cc.Component {
                         if(i==0)
                         {
                             this.player_self.set_uid(data[0]);
-                            this.player_self.set_unionid(data[1]);
+                            this.player_self.set_unionid(data[1].unionid);
+                            this.player_self.set_icon(data[1].imgurl);
+                            this.player_self.set_name(data[1].nick);
+
                             var temp = player[1];
                             this.player_2.set_uid(temp[0]);
-                            this.player_2.set_unionid(temp[1]);
+                            this.player_2.set_unionid(temp[1].unionid);
+                            this.player_2.set_icon(temp[1].imgurl);
+                            this.player_2.set_name(temp[1].nick);
                         }
                         else
                         {
                             this.player_self.set_uid(data[0]);
-                            this.player_self.set_unionid(data[1]);
+                            this.player_self.set_unionid(data[1].unionid);
+                            this.player_self.set_icon(data[1].imgurl);
+                            this.player_self.set_name(data[1].nick);
+
                             var temp = player[0];
                             this.player_1.set_uid(temp[0]);
-                            this.player_1.set_unionid(temp[1]);
+                            this.player_1.set_unionid(temp[1].unionid);
+                            this.player_1.set_icon(temp[1].imgurl);
+                            this.player_1.set_name(temp[1].nick);
                         }
                     }
                     break;
@@ -436,35 +494,62 @@ export default class RecordManager extends cc.Component {
                         if(i==0)
                         {
                             this.player_self.set_uid(data[0]);
-                            this.player_self.set_unionid(data[1]);
+                            this.player_self.set_unionid(data[1].unionid);
+                            this.player_self.set_icon(data[1].imgurl);
+                            this.player_self.set_name(data[1].nick);
+
                             var temp = player[1];
                             this.player_2.set_uid(temp[0]);
-                            this.player_2.set_unionid(temp[1]);
+                            this.player_2.set_unionid(temp[1].unionid);
+                            this.player_2.set_icon(temp[1].imgurl);    
+                            this.player_2.set_name(temp[1].nick);
+                            
                             temp = player[2];
                             this.player_1.set_uid(temp[0]);
-                            this.player_1.set_unionid(temp[1]);
+                            this.player_1.set_unionid(temp[1].unionid);
+                            this.player_1.set_icon(temp[1].imgurl);
+                            this.player_1.set_name(temp[1].nick);
+                            
                         }
                         else if(i==1)
                         {
                             this.player_self.set_uid(data[0]);
-                            this.player_self.set_unionid(data[1]);
+                            this.player_self.set_unionid(data[1].unionid);
+                            this.player_self.set_icon(data[1].imgurl);
+                            this.player_self.set_name(data[1].nick);
+
                             var temp = player[2];
                             this.player_2.set_uid(temp[0]);
-                            this.player_2.set_unionid(temp[1]);
+                            this.player_2.set_unionid(temp[1].unionid);
+                            this.player_2.set_icon(temp[1].imgurl);
+                            this.player_2.set_name(temp[1].nick);
+
                             temp = player[0];
                             this.player_1.set_uid(temp[0]);
-                            this.player_1.set_unionid(temp[1]);
+                            this.player_1.set_unionid(temp[1].unionid);
+                            this.player_1.set_icon(temp[1].imgurl);
+                            this.player_1.set_name(temp[1].nick);
+
                         }
                         else
                         {
                             this.player_self.set_uid(data[0]);
-                            this.player_self.set_unionid(data[1]);
+                            this.player_self.set_unionid(data[1].unionid);
+                            this.player_self.set_icon(data[1].imgurl);
+                            this.player_self.set_name(data[1].nick);
+
                             var temp = player[0];
                             this.player_2.set_uid(temp[0]);
-                            this.player_2.set_unionid(temp[1]);
+                            this.player_2.set_unionid(temp[1].unionid);
+                            this.player_2.set_icon(temp[1].imgurl);
+                            this.player_2.set_name(temp[1].nick);
+
                             temp = player[1];
                             this.player_1.set_uid(temp[0]);
-                            this.player_1.set_unionid(temp[1]);
+                            this.player_1.set_unionid(temp[1].unionid);
+                            this.player_1.set_icon(temp[1].imgurl);
+                            this.player_1.set_name(temp[1].nick);
+
                         }
                     }
                     break;
@@ -627,56 +712,91 @@ export default class RecordManager extends cc.Component {
         this.index++;
     }
 
+
     onMessage(type,msg){
         console.log(msg);
         var json = JSON.parse(msg);
         console.log(type,json);
         switch(type)
         {
-            case 0:
-            this.timer = 0;   
-            break;
-            case 2:
-            this.timer = 0;
+            case SERVER_MSG.SM_ENTER_ROOM:
+            this.on_enter_room_msg(json);
             break;
 
-            case 3:
+            case SERVER_MSG.SM_START_GAME:
             this.set_start_game_msg(json);
             break;
 
-            case 4:
+            case SERVER_MSG.SM_MO_PAI:
             this.on_mopai_msg(json);
             break;
 
-            case 5:
+            case SERVER_MSG.SM_CHU_PAI:
             this.on_chupai_msg(json);
             break;
 
-            case 6:
+            case SERVER_MSG.SM_HUAN_PAI:
             this.on_huanpai_msg(json);
             break;
 
-            case 7:
+            case SERVER_MSG.SM_PENG_PAI:
             this.on_pengpai_msg(json);
             break;
 
-            case 8:
+            case SERVER_MSG.SM_GANG_PAI:
             this.on_gangpai_msg(json);
             break;
 
-            case 9:
+            case SERVER_MSG.SM_HU_PAI:
             this.on_hupai_msg(json);
             break;
 
-            case 10:
+            case SERVER_MSG.SM_GAME_BALANCE:
             this.on_balance_msg(json);
             break;
 
-            case 12:
+            case SERVER_MSG.SM_SYNC_ROOM_STATE:
+            this.on_sync_room_msg(json);
+            break;
+
+            case SERVER_MSG.SM_MAI_ZHUANG:
             this.on_maizhuang_msg(json);
             break;
 
+            default:
+            this.timer = 0;
+            break;
+
         }
+    }
+
+    on_enter_room_msg(json)
+    {
+
+        var players_data = json.clients;  
+
+        var len = players_data.length;
+        for (var i = 0; i < len; i++) {
+            if (players_data[i].info.unionid == this.player_1.get_unionid()) {
+                this.player_1.set_uid(players_data[i].uid);
+            }
+            else if (players_data[i].info.unionid == this.player_2.get_unionid()) {
+                this.player_2.set_uid(players_data[i].uid);
+            }
+            else if (players_data[i].info.unionid == this.player_self.get_unionid()) {
+                this.player_self.set_uid(players_data[i].uid);
+            }
+
+           // console.log("11111111111111111111111111111111"+ players_data[i].info.unionid+"11111111111111"+players_data[i].uid);
+
+        }
+
+        // console.log("11111111111111111111111111111111"+ this.player_self.get_unionid()+"11111111111111"+this.player_self.get_uid());
+        // console.log("11111111111111111111111111111111"+ this.player_1.get_unionid()+"11111111111111"+this.player_1.get_uid());
+        // console.log("11111111111111111111111111111111"+ this.player_2.get_unionid()+"11111111111111"+this.player_2.get_uid());
+
+        this.timer = 0;  
+
     }
 
     on_maizhuang_msg(json)
@@ -700,6 +820,7 @@ export default class RecordManager extends cc.Component {
         else {
             this.timer = 0;
         }
+
     }
 
     on_leave_room_msg(json)
@@ -719,7 +840,10 @@ export default class RecordManager extends cc.Component {
         this.clear_time();
         this.balance.set_hupai_data(json);
         this.timer = 0;
+        if(!this.is_speed_up)
         this.wait_time = 15;
+        else
+        this.wait_time = 1;
         this.is_new = true;
     }
 
@@ -805,6 +929,13 @@ export default class RecordManager extends cc.Component {
             this.resetGame();
             this.is_new = false; 
         }
+
+        // console.log("22222222222222222222222222"+json.uid);
+
+        // console.log("11111111111111111111111111111111"+ this.player_self.get_unionid()+"11111111111111"+this.player_self.get_uid());
+        // console.log("11111111111111111111111111111111"+ this.player_1.get_unionid()+"11111111111111"+this.player_1.get_uid());
+        // console.log("11111111111111111111111111111111"+ this.player_2.get_unionid()+"11111111111111"+this.player_2.get_uid());
+
         var player = this.getPlayerByID(json.uid);
         this.player_1.set_prepare();
         this.player_2.set_prepare();
@@ -818,6 +949,36 @@ export default class RecordManager extends cc.Component {
         this.set_jiangpai_data(json.jiang);
         this.timer = 0;  
     }
+
+    on_sync_room_msg(json){
+
+        var players_data = json.players;  
+
+        var len = players_data.length;
+        for (var i = 0; i < len; i++) {
+            if (players_data[i].info.unionid == this.player_1.get_unionid()) {
+                this.player_1.set_uid(players_data[i].uid);
+            }
+            else if (players_data[i].info.unionid == this.player_2.get_unionid()) {
+                this.player_2.set_uid(players_data[i].uid);
+            }
+            else if (players_data[i].info.unionid == this.player_self.get_unionid()) {
+                this.player_self.set_uid(players_data[i].uid);
+            }
+
+           // console.log("11111111111111111111111111111111"+ players_data[i].info.unionid+"11111111111111"+players_data[i].uid);
+
+
+        }
+
+        // console.log("11111111111111111111111111111111"+ this.player_self.get_unionid()+"11111111111111"+this.player_self.get_uid());
+        // console.log("11111111111111111111111111111111"+ this.player_1.get_unionid()+"11111111111111"+this.player_1.get_uid());
+        // console.log("11111111111111111111111111111111"+ this.player_2.get_unionid()+"11111111111111"+this.player_2.get_uid());
+
+        this.timer = 0;  
+
+    }
+
 
     getPlayerByID(value: string) {
         if (this.player_1.get_uid() == value)

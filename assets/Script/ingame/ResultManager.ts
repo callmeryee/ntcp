@@ -41,6 +41,8 @@ export default class NewClass extends cc.Component {
 
     show_result(){
 
+        Global.active_room_uid = null;
+
         var total_scores = [];   
         for(var i=0;i<this.data.length;i++)
         {
@@ -48,9 +50,9 @@ export default class NewClass extends cc.Component {
             var temp2 = {};
             temp2.score = 0;
             temp2.winner = false;
-            for(var j=0;j<temp.length;j++)
+            for(var j=0;j<temp.score.length;j++)
             {
-                temp2.score+=temp[j];
+                temp2.score+=temp.score[j];
             }
             total_scores.push(temp2);
         }
@@ -113,10 +115,10 @@ export default class NewClass extends cc.Component {
         
                 for(var j = 0;j<items.length;j++)
                 {
-                    if(j<data_score.length)
+                    if(j<data_score.score.length)
                     {      
                        items[j].getChildByName('No').getComponent(cc.Label).string = '第'+(j+1).toString()+'局';
-                       items[j].getChildByName('score').getComponent(cc.Label).string = data_score[j]>0?'+'+data_score[j]:data_score[j];
+                       items[j].getChildByName('score').getComponent(cc.Label).string = data_score.score[j]>0?'+'+data_score.score[j]:data_score.score[j];
                        items[j].active = true;
                     }
                     else
@@ -141,7 +143,8 @@ export default class NewClass extends cc.Component {
         if(InGameManager.instance != null)
         {
             window.callStaticMethod(0, 'cocosLog:InGameManager is not null');
-            ServerConnection.svc_closePlatform();
+            Global.leave_room();
+            //ServerConnection.svc_closePlatform();
         }
         else if(RecordManager.instance!=null)
         {

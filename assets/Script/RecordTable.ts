@@ -114,10 +114,11 @@ export default class NewClass extends cc.Component {
         var score_string = '';
         var winner = '';
         var winner_score = 0;
-        for(var i = 0;i<len;i=i+2)
+        for(var i = 0;i<len;i=i+3)
         {
             var temp1 = data.score[i];
-            var temp2 = data.score[i+1];
+            var temp2 = data.score[i+2];
+            var temp3 = data.score[i+1];
             if (winner == '') {
                 winner = temp1;
                 winner_score = temp2;
@@ -136,7 +137,8 @@ export default class NewClass extends cc.Component {
                     }
                 }
             }
-            score_string += temp1+':'+temp2+' '
+            
+            score_string += temp3+':'+temp2+' '
         }
         
 

@@ -55,17 +55,49 @@ cc.Class({
 
 	start () {
 		Global.soundmanager.play_music();
+
+		if(Global.is_reconnection == 1)
+		{
+			if(Global.active_room_uid!=null)
+			{
+				Global.room_uid = Global.active_room_uid;
+				ServerConnection.enter_room();
+				Global.active_room_uid = null;
+			}
+			else
+		    	Global.appear_action(this.enter_room_table);
+			Global.is_reconnection = 0;
+		}else if(Global.is_reconnection == 2)
+		{
+			this.create_table.getComponent('CreateTable').show();
+			Global.is_reconnection = 0;
+		}
+
 	},
 
 
     create_room_btn_onclick:function(){
 		Global.soundmanager.play_button_click();
-		this.create_table.getComponent('CreateTable').show();
+
+		if (ServerConnection.svc_websocket == null) {
+			ServerConnection.svc_connectPlatform();
+			Global.is_reconnection = 2;
+		}
+		else
+            this.create_table.getComponent('CreateTable').show();
 	},
 
 	enter_room_btn_onclick:function(){
 		Global.soundmanager.play_button_click();
-		Global.appear_action(this.enter_room_table);
+
+		if (ServerConnection.svc_websocket == null) {
+			ServerConnection.svc_connectPlatform();
+			Global.is_reconnection = 1;
+		}
+		else {
+			Global.appear_action(this.enter_room_table);
+		}
+		
 	},
 
 	record_btn_onclick:function(){		

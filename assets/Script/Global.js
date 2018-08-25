@@ -6,13 +6,13 @@ var common = require("Common");
 var ServerConnection = {
     openid: "123456",
 
-    ip: "http://192.168.2.103:9800/public",
-    wsServer: "ws://192.168.2.103:9300",
-    record_url: "http://192.168.2.110:8080/record/",
+    // ip: "http://192.168.2.103:9800/public",
+    // wsServer: "ws://192.168.2.103:9300",
+    // record_url: "http://192.168.2.110:8080/record/",
 
-    // ip: "http://ntcp.wohnb.com/ntcp",
-    // wsServer: "ws://ntcp.wohnb.com:9500",
-    // record_url: "http://ntcp.wohnb.com/record/",
+    ip: "http://ntcp.wohnb.com/ntcp",
+    wsServer: "ws://ntcp.wohnb.com:9500",
+    record_url: "http://ntcp.wohnb.com/record/",
 
 
     svc_websocket: null,
@@ -20,6 +20,8 @@ var ServerConnection = {
     check_connect_count: 0,
     max_check_connect_count: 3,
     connected: false,
+
+    is_reconnection:0,
 
     xmlHttpRequest: function (url, callback) {
         var xhr = cc.loader.getXMLHttpRequest();
@@ -111,11 +113,13 @@ var ServerConnection = {
     },
 
 
-    enter_room: function () {
-        if (this.svc_websocket == null)
-            this.svc_connectPlatform();
-        else
-            this.svc_send(CLIENT_MSG.CM_ENTER_ROOM, { roomid: Global.room_uid, unionid: Global.unionid, nick: Global.nickname, imgurl: Global.headimgurl });
+    enter_room: function () {     
+        this.svc_send(CLIENT_MSG.CM_ENTER_ROOM, { roomid: Global.room_uid, unionid: Global.unionid, nick: Global.nickname, imgurl: Global.headimgurl });
+    },
+
+
+    check_in_room: function (room_id) {
+        this.svc_send(CLIENT_MSG.CM_CHECK_IN_ROOM, { roomid: Global.room_uid, unionid: Global.unionid });
     },
 
 
@@ -165,7 +169,9 @@ var ServerConnection = {
         Global.log("Connected to WebSocket server.");
         ServerConnection.check_connect_count = 0;
         ServerConnection.connected = true;
-        ServerConnection.svc_send(CLIENT_MSG.CM_ENTER_ROOM, { roomid: Global.room_uid, unionid: Global.unionid, nick: Global.nickname, imgurl: Global.headimgurl });
+
+        ServerConnection.check_in_room("111");
+
     },
 
     svc_onClose: function (evt) {
@@ -187,19 +193,21 @@ var ServerConnection = {
         var json = { id: data[0], msg: data[1] };
         Global.log(SERVER_MSG[json.id] + ": " + JSON.stringify(json.msg));
         switch (json.id) {
-            // case SERVER_MSG.SM_LOGIN:
-            // {
-            //     Global.on_login_msg(json.msg);
-            // }
-            // break;
-            // case SERVER_MSG.SM_CREATE_ROOM:
-            // {
-            //     Global.on_create_room_msg(json.msg);
-            // }
-            // break;
+
+            case SERVER_MSG.SM_CHECK_IN_ROOM:
+                {
+                    Global.on_check_in_room_msg(json.msg);
+                }
+                break;
+
             case SERVER_MSG.SM_ENTER_ROOM:
                 {
                     Global.on_enter_room_msg(json.msg);
+                }
+                break;
+            case SERVER_MSG.SM_SYNC_ROOM_STATE:
+                {
+                    Global.on_sync_room_msg(json.msg);
                 }
                 break;
             case SERVER_MSG.SM_LEAVE_ROOM:
@@ -274,19 +282,19 @@ var ServerConnection = {
                         InGameManager.instance.on_broadcast_msg(json.msg);
                 }
                 break;
-                case SERVER_MSG.SM_DISMISS_GAME:
+            case SERVER_MSG.SM_DISMISS_GAME:
                 {
                     if (InGameManager.instance)
                         InGameManager.instance.on_dismiss_game_msg(json.msg);
                 }
                 break;
 
-                 case SERVER_MSG.SM_DISMISS_GAME_RESULT:
+            case SERVER_MSG.SM_DISMISS_GAME_RESULT:
                 {
                     if (InGameManager.instance)
                         InGameManager.instance.on_dismiss_game_result_msg(json.msg);
                 }
-                break;  
+                break;
         }
     },
 
@@ -311,21 +319,21 @@ window.ServerConnection = ServerConnection
 
 var Global = {
 
-    game_app:null,
+    game_app: null,
 
     AppId: 'wx278464a99e02e646',
-    authorize_after_registerApp:false,
-    local_unionid:null,
+    authorize_after_registerApp: false,
+    local_unionid: null,
 
     common: null,
 
     headimgurl: '',
     headicon: null,
 
-    location:null, //位置信息
-    latitude:null, //纬度
-    longitude:null, //经度
-    radius:null,//定位精度
+    location: null, //位置信息
+    latitude: null, //纬度
+    longitude: null, //经度
+    radius: null,//定位精度
 
     nickname: '游客',
     unionid: null,
@@ -339,6 +347,10 @@ var Global = {
 
     uid: null,
     room_uid: null,
+    
+    active_room_uid :null,
+
+
     room_data: null,
 
     logview: null,
@@ -350,6 +362,8 @@ var Global = {
     messagebox: null,
 
     record_data: null,
+
+    sync_data: null,
 
 
     appear_action: function (node) {
@@ -433,25 +447,26 @@ var Global = {
         this.diamond = json.diamondCount;
         this.gold = json.goldCount;
         Global.common = common;
-        this.loadScene('lobby');
+
+        ServerConnection.svc_connectPlatform();
     },
 
     init_room: function (json) {
         if (json.error != null) {
 
-            switch(json.error)
-            {
+            switch (json.error) {
                 case "ERROR_USER_STATE_INROOM":
-                {
-                    var text = "当前房间未正常退出，房号 "+json.msg
-                    this.messagebox.create_box(text);
-                }
-                break;
+                    {
+                        var text = "当前房间未正常退出，房号 " + json.msg
+                        this.messagebox.create_box(text);
+
+                    }
+                    break;
                 default:
-                {
-                    this.messagebox.create_box(json.error);
-                }
-                break;
+                    {
+                        this.messagebox.create_box(json.error);
+                    }
+                    break;
             }
 
             return;
@@ -483,137 +498,84 @@ var Global = {
         this.loadScene('lobby');
     },
 
-    // on_login_msg:function(json){
-    //     if(json.error)
-    //     return;
-    //     this.uid = json.uid;
-    //     this.loadScene('lobby');
-    // },
 
-    // on_create_room_msg:function(json){
-    //     if(json.error)
-    //     return;
-    //     if(json.self==1)
-    //     {
-    //         this.room_uid = json.room_uid;
-    //         ServerConnection.svc_send(CLIENT_MSG.CM_ENTER_ROOM,{room_uid:this.room_uid});
-    //     }
-    // },
+    on_check_in_room_msg: function (json) {
+        console.log(json);
+        if(json.roomid!=null)
+        {
+            Global.room_uid = json.roomid;
+            ServerConnection.enter_room();
+        }
+        else
+        {
+            Global.loadScene('lobby');  
+        }
+    },
+
 
     on_enter_room_msg: function (json) {
         if (json.error) {
             this.room_data = null;
 
-            switch(json.error)
-            {
+            switch (json.error) {
                 case "ERROR_USER_STATE_INROOM":
-                {
-                    var text = "当前房间未正常退出，房号 "+json.msg
-                    this.messagebox.create_box(text);
-                }
-                break;
+                    {
+                        var text = "当前房间未正常退出，房号 " + json.msg
+                        this.messagebox.create_box(text);
+                    }
+                    break;
                 default:
-                {
-                    this.messagebox.create_box(json.error);
-                }
-                break;
+                    {
+                        this.messagebox.create_box(json.error);
+                    }
+                    break;
             }
-         
+
             return;
         }
+
+        this.room_data = json;
+
         if (json.self)
             this.uid = json.self;
-        this.room_data = json;
+
         if (InGameManager.instance == null) {
             this.loadScene('ingame');
-        }
-        else if (json.self) {
-            InGameManager.instance.init_game();
         }
         else
             InGameManager.instance.set_room_info();
     },
 
-    // on_ready_game_msg:function(json){
-    //     if(json.error)
-    //     {
-    //         this.messagebox.create_box(json.error);
-    //         return;
-    //     }
-    //     this.ingame.set_ready(json);
-    // },
 
-    // on_start_game_msg:function(json){
-    //     if(json.error)
-    //     {
-    //         this.messagebox.create_box(json.error);
-    //         return;
-    //     }
-    //     this.ingame.get_start_game_msg(json);
-    // },
+    on_sync_room_msg: function (json) {
+        if (json.error) {
+            this.room_data = null;
 
-    // on_huanpai_msg:function(json){
-    //     if(json.error)
-    //     {
-    //         this.messagebox.create_box(json.error);
-    //         return;
-    //     }
-    //     this.ingame.get_huanpai_msg(json);
-    // },
+            switch (json.error) {
+                case "ERROR_USER_STATE_INROOM":
+                    {
+                        var text = "当前房间未正常退出，房号 " + json.msg;
+                        this.messagebox.create_box(text);
 
-    // on_mopai_msg:function(json){
-    //     if(json.error)
-    //     {
-    //         this.messagebox.create_box(json.error);
-    //         return;
-    //     }
-    //     this.ingame.get_mopai_msg(json);
-    // },
+                    }
+                    break;
+                default:
+                    {
+                        this.messagebox.create_box(json.error);
+                    }
+                    break;
+            }
+        }
 
-    // on_chupai_msg:function(json){
-    //     if(json.error)
-    //     {
-    //         this.messagebox.create_box(json.error);
-    //         return;
-    //     }
-    //     this.ingame.get_chupai_msg(json);
-    // },
+        this.sync_data = json;
 
-    // on_gangpai_msg:function(json){
-    //     if(json.error)
-    //     {
-    //         this.messagebox.create_box(json.error);
-    //         return;
-    //     }
-    //     this.ingame.get_gangpai_msg(json);
-    // },
-
-    // on_pengpai_msg:function(json){
-    //     if(json.error)
-    //     {
-    //         this.messagebox.create_box(json.error);
-    //         return;
-    //     }
-    //     this.ingame.get_pengpai_msg(json);
-    // },
-
-    // on_hupai_msg:function(json){
-    //     if(json.error)
-    //     {
-    //         this.messagebox.create_box(json.error);
-    //         return;
-    //     }
-    //     this.ingame.get_hupai_msg(json);
-    // },
-
-    // on_balance_msg:function(json){
-    //     if(json.error)
-    //     {
-    //         this.messagebox.create_box(json.error);
-    //         return;
-    //     }
-    //     this.ingame.get_balance_msg(json);
-    // },
+        if (InGameManager.instance == null) {
+            this.loadScene('ingame');
+        }
+        else {
+            InGameManager.instance.on_sync_room_msg();
+        }
+    },
 
     log: function (text) {
         this.logview.addMessage(text);
@@ -637,36 +599,38 @@ window.Global = Global
 
 var CLIENT_MSG;
 (function (CLIENT_MSG) {
-    CLIENT_MSG[CLIENT_MSG["CM_ENTER_ROOM"] = 0] = "CM_ENTER_ROOM";
-    CLIENT_MSG[CLIENT_MSG["CM_LEAVE_ROOM"] = 1] = "CM_LEAVE_ROOM";
-    CLIENT_MSG[CLIENT_MSG["CM_READY_GAME"] = 2] = "CM_READY_GAME";
-    CLIENT_MSG[CLIENT_MSG["CM_START_GAME"] = 3] = "CM_START_GAME";
-    CLIENT_MSG[CLIENT_MSG["CM_GET_ROOM_INFO"] = 4] = "CM_GET_ROOM_INFO";
-    CLIENT_MSG[CLIENT_MSG["CM_CHU_PAI"] = 5] = "CM_CHU_PAI";
-    CLIENT_MSG[CLIENT_MSG["CM_RESPON_CHU_PAI"] = 6] = "CM_RESPON_CHU_PAI";
-    CLIENT_MSG[CLIENT_MSG["CM_HUAN_PAI"] = 7] = "CM_HUAN_PAI";
-    CLIENT_MSG[CLIENT_MSG["CM_MAI_ZHUANG"] = 8] = "CM_MAI_ZHUANG";
-    CLIENT_MSG[CLIENT_MSG["CM_BROADCAST"] = 9] = "CM_BROADCAST";
-    CLIENT_MSG[CLIENT_MSG["CM_DISMISS_GAME"] = 10] = "CM_DISMISS_GAME";
+    CLIENT_MSG[CLIENT_MSG["CM_CHECK_IN_ROOM"] = 0] = "CM_CHECK_IN_ROOM";
+    CLIENT_MSG[CLIENT_MSG["CM_ENTER_ROOM"] = 1] = "CM_ENTER_ROOM";
+    CLIENT_MSG[CLIENT_MSG["CM_LEAVE_ROOM"] = 2] = "CM_LEAVE_ROOM";
+    CLIENT_MSG[CLIENT_MSG["CM_READY_GAME"] = 3] = "CM_READY_GAME";
+    CLIENT_MSG[CLIENT_MSG["CM_START_GAME"] = 4] = "CM_START_GAME";
+    CLIENT_MSG[CLIENT_MSG["CM_GET_ROOM_INFO"] = 5] = "CM_GET_ROOM_INFO";
+    CLIENT_MSG[CLIENT_MSG["CM_CHU_PAI"] = 6] = "CM_CHU_PAI";
+    CLIENT_MSG[CLIENT_MSG["CM_RESPON_CHU_PAI"] = 7] = "CM_RESPON_CHU_PAI";
+    CLIENT_MSG[CLIENT_MSG["CM_HUAN_PAI"] = 8] = "CM_HUAN_PAI";
+    CLIENT_MSG[CLIENT_MSG["CM_MAI_ZHUANG"] = 9] = "CM_MAI_ZHUANG";
+    CLIENT_MSG[CLIENT_MSG["CM_BROADCAST"] = 10] = "CM_BROADCAST";
+    CLIENT_MSG[CLIENT_MSG["CM_DISMISS_GAME"] = 11] = "CM_DISMISS_GAME";
 })(CLIENT_MSG || (CLIENT_MSG = {}));
 var SERVER_MSG;
 (function (SERVER_MSG) {
-    SERVER_MSG[SERVER_MSG["SM_ENTER_ROOM"] = 0] = "SM_ENTER_ROOM";
-    SERVER_MSG[SERVER_MSG["SM_LEAVE_ROOM"] = 1] = "SM_LEAVE_ROOM";
-    SERVER_MSG[SERVER_MSG["SM_READY_GAME"] = 2] = "SM_READY_GAME";
-    SERVER_MSG[SERVER_MSG["SM_START_GAME"] = 3] = "SM_START_GAME";
-    SERVER_MSG[SERVER_MSG["SM_MO_PAI"] = 4] = "SM_MO_PAI";
-    SERVER_MSG[SERVER_MSG["SM_CHU_PAI"] = 5] = "SM_CHU_PAI";
-    SERVER_MSG[SERVER_MSG["SM_HUAN_PAI"] = 6] = "SM_HUAN_PAI";
-    SERVER_MSG[SERVER_MSG["SM_PENG_PAI"] = 7] = "SM_PENG_PAI";
-    SERVER_MSG[SERVER_MSG["SM_GANG_PAI"] = 8] = "SM_GANG_PAI";
-    SERVER_MSG[SERVER_MSG["SM_HU_PAI"] = 9] = "SM_HU_PAI";
-    SERVER_MSG[SERVER_MSG["SM_GAME_BALANCE"] = 10] = "SM_GAME_BALANCE";
-    SERVER_MSG[SERVER_MSG["SM_SYNC_ROOM_STATE"] = 11] = "SM_SYNC_ROOM_STATE";
-    SERVER_MSG[SERVER_MSG["SM_MAI_ZHUANG"] = 12] = "SM_MAI_ZHUANG";
-    SERVER_MSG[SERVER_MSG["SM_BROADCAST"] = 13] = "SM_BROADCAST";
-    SERVER_MSG[SERVER_MSG["SM_DISMISS_GAME"] = 14] = "SM_DISMISS_GAME";
-    SERVER_MSG[SERVER_MSG["SM_DISMISS_GAME_RESULT"] = 15] = "SM_DISMISS_GAME_RESULT";
+    SERVER_MSG[SERVER_MSG["SM_CHECK_IN_ROOM"] = 0] = "SM_CHECK_IN_ROOM";
+    SERVER_MSG[SERVER_MSG["SM_ENTER_ROOM"] = 1] = "SM_ENTER_ROOM";
+    SERVER_MSG[SERVER_MSG["SM_LEAVE_ROOM"] = 2] = "SM_LEAVE_ROOM";
+    SERVER_MSG[SERVER_MSG["SM_READY_GAME"] = 3] = "SM_READY_GAME";
+    SERVER_MSG[SERVER_MSG["SM_START_GAME"] = 4] = "SM_START_GAME";
+    SERVER_MSG[SERVER_MSG["SM_MO_PAI"] = 5] = "SM_MO_PAI";
+    SERVER_MSG[SERVER_MSG["SM_CHU_PAI"] = 6] = "SM_CHU_PAI";
+    SERVER_MSG[SERVER_MSG["SM_HUAN_PAI"] = 7] = "SM_HUAN_PAI";
+    SERVER_MSG[SERVER_MSG["SM_PENG_PAI"] = 8] = "SM_PENG_PAI";
+    SERVER_MSG[SERVER_MSG["SM_GANG_PAI"] = 9] = "SM_GANG_PAI";
+    SERVER_MSG[SERVER_MSG["SM_HU_PAI"] = 10] = "SM_HU_PAI";
+    SERVER_MSG[SERVER_MSG["SM_GAME_BALANCE"] = 11] = "SM_GAME_BALANCE";
+    SERVER_MSG[SERVER_MSG["SM_SYNC_ROOM_STATE"] = 12] = "SM_SYNC_ROOM_STATE";
+    SERVER_MSG[SERVER_MSG["SM_MAI_ZHUANG"] = 13] = "SM_MAI_ZHUANG";
+    SERVER_MSG[SERVER_MSG["SM_BROADCAST"] = 14] = "SM_BROADCAST";
+    SERVER_MSG[SERVER_MSG["SM_DISMISS_GAME"] = 15] = "SM_DISMISS_GAME";
+    SERVER_MSG[SERVER_MSG["SM_DISMISS_GAME_RESULT"] = 16] = "SM_DISMISS_GAME_RESULT";
 })(SERVER_MSG || (SERVER_MSG = {}));
 
 var State = {

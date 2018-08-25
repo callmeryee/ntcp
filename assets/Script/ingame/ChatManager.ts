@@ -72,6 +72,7 @@ export default class NewClass extends cc.Component {
     }
 
     send_talk(index){
+      this.hide();
       if(this.timer>0)
       return;
 
@@ -84,6 +85,7 @@ export default class NewClass extends cc.Component {
     }
 
     send_msg(){
+      this.hide();
       if(this.timer>0)
       return;
       var msg = '';

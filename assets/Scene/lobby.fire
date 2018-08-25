@@ -19589,7 +19589,7 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": 0,
+      "x": 18,
       "y": -30
     },
     "_skewX": 0,
@@ -19654,7 +19654,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 55.62,
+      "width": 408.18,
       "height": 20
     },
     "_rotationX": 0,
@@ -19663,7 +19663,7 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": 354,
+      "x": 364,
       "y": -30
     },
     "_skewX": 0,
@@ -19689,7 +19689,7 @@
     "_N$file": null,
     "_isSystemFontUsed": true,
     "_spacingX": 0,
-    "_N$string": "21321",
+    "_N$string": "asddddddddddddddddddasddddddddddddasd",
     "_N$horizontalAlign": 1,
     "_N$verticalAlign": 1,
     "_N$fontFamily": "Arial",
@@ -20566,7 +20566,7 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": 274,
+      "x": 297,
       "y": 0
     },
     "_skewX": 0,
@@ -20870,7 +20870,7 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": 0,
+      "x": 20,
       "y": -1
     },
     "_skewX": 0,
@@ -20944,7 +20944,7 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": 353.6,
+      "x": 365,
       "y": -1
     },
     "_skewX": 0,

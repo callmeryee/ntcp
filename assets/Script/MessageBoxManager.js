@@ -57,7 +57,7 @@ cc.Class({
             var confirm = obj.getChildByName("confirm");
             var time_label = obj.getChildByName("time").getComponent(cc.Label);  
             time_label.string = "";
-            var t = 100;
+            var t = 120;
             var stop_timer = false;
             function timer()
             {
