@@ -3,25 +3,62 @@ import InGameManager from "./ingame/InGameManager";
 var common = require("Common");
 
 
-var ServerConnection = {
-    openid: "123456",
+function LoginSocket() {
 
-    // ip: "http://192.168.2.103:9800/public",
-    // wsServer: "ws://192.168.2.103:9300",
+    this.getMessage = function (send, callback) {
+        var socket = null;
+        try {
+            socket = new WebSocket(ServerConnection.wsLogin);
+        } catch (evt) {
+            socket = null;
+            Global.log("new LoginSocket error:" + evt.data);
+            if (typeof (connCb) != "undefined" && connCb != null)
+                connCb("-1", "loginsocket connect error!");
+        }
+
+        if (socket != null) {
+            socket.onopen = () => { send(socket) };
+            socket.onclose = this.onClose;
+            socket.onmessage = (evt) => {
+                console.log(evt.data);
+                callback(JSON.parse(evt.data));
+                socket.close();
+            };
+            socket.onerror = this.onError;
+        }
+
+
+    };
+
+    this.onClose = function (evt) {
+        console.log("login socket onclose");
+    };
+
+    this.onError = function (evt) {
+        for ( var p in evt) {
+            console.log(p + "=" + evt[p]);
+        }
+    };
+
+}
+
+
+var ServerConnection = {
+
+
+    // wsLogin: "ws://192.168.2.103:9800",
+    // wsServer: "ws://192.168.2.103:9801",
     // record_url: "http://192.168.2.110:8080/record/",
 
-    ip: "http://ntcp.wohnb.com/ntcp",
-    wsServer: "ws://ntcp.wohnb.com:9500",
-    record_url: "http://ntcp.wohnb.com/record/",
 
+    wsLogin: "ws://47.96.188.12:9800",
+    wsServer: "ws://47.96.188.12:9801",
+    record_url: "http://47.96.188.12/record/",
 
     svc_websocket: null,
+    login_socket: null,
 
-    check_connect_count: 0,
-    max_check_connect_count: 3,
-    connected: false,
-
-    is_reconnection:0,
+    checked: false,
 
     xmlHttpRequest: function (url, callback) {
         var xhr = cc.loader.getXMLHttpRequest();
@@ -60,29 +97,117 @@ var ServerConnection = {
     },
 
 
-    login: function (code, uid, check) {
-        // this.openid = "11111" +  Math.ceil(Math.random()*10);
-        // Global.log("openid:" + this.openid);
-        var url = this.ip + "/getUserInfo";
-        var data = { code: code, uid: uid, checkCode: check };
-        this.xmlHttpRequest2(url, data, function (respone) {
-            var json = JSON.parse(respone);
-            //console.log(json);
-            Global.init_login(json);
-        })
+    sendCode: function (code) {
+
+        if (this.login_socket == null)
+            this.login_socket = new LoginSocket();
+
+        this.login_socket.getMessage(function (socket) {
+            socket.send(JSON.stringify({
+                path: "GetUserInfo",
+                data: {
+                    code: code
+                }
+            }))
+        }, function (message) {
+            Global.log("GetUserInfo_code:"+JSON.stringify(message));
+            ServerConnection.sendUnionID(message.unionid);
+        });
+
+        // var url = this.ip + "/getUserInfo";
+        // var data = { code: code, uid: uid, checkCode: check };
+        // this.xmlHttpRequest2(url, data, function (respone) {
+        //     var json = JSON.parse(respone);
+        //     //console.log(json);
+        //     Global.init_login(json);
+        // })
     },
 
-    create_room: function (playCount, payType, balanceRate, includexi, fengding) {
+    getGameRecord: function (guid) {
 
-        var url = this.ip + "/getRoomCard";
-        var currencyType = 'Diamond';
-        var data = { uid: Global.unionid, playCount: playCount, payType: payType, balanceRate: balanceRate, includexi: includexi, currencyType: currencyType, maxScore: fengding };
-        this.xmlHttpRequest2(url, data, function (respone) {
-            var json = JSON.parse(respone);
-            //console.log(json);
-            Global.init_room(json);
-        })
+        if (this.login_socket == null)
+            this.login_socket = new LoginSocket();
+
+        this.login_socket.getMessage(function (socket) {
+            socket.send(JSON.stringify({
+                path: "GetGameRecord",
+                data: {
+                    guid: guid
+                }
+            }))
+        }, function (message) {
+            Global.log("GetGameRecord");
+            console.log(message);
+        });
+
     },
+
+    sendUnionID: function (unionid) {
+        if (this.login_socket == null)
+            this.login_socket = new LoginSocket();
+
+        this.login_socket.getMessage(function (socket) {
+            socket.send(JSON.stringify({
+                path: "GetUserInfo",
+                data: {
+                    unionid: unionid
+                }
+            }))
+        }, function (message) {
+            Global.log("GetUserInfo_unionid");
+            Global.init_login(message);
+        });
+    },
+
+
+    sendTestUnionID: function () {
+        if (this.login_socket == null)
+            this.login_socket = new LoginSocket();
+
+        this.login_socket.getMessage(function (socket) {
+            socket.send(JSON.stringify({
+                path: "TestUserInfo",
+                data: {
+
+                }
+            }))
+        }, function (message) {
+            console.log(message);
+            Global.log("Get test user info");
+            Global.init_login(message);
+        });
+
+    },
+
+
+    createRoom: function (playCount, payType, balanceRate, includexi, fengding) {
+
+        if (this.login_socket == null)
+            this.login_socket = new LoginSocket();
+        var currency = 'diamond';
+        var data = { unionid: Global.unionid, count: playCount, payType: payType, balanceRate: balanceRate, includexi: includexi, currency: currency, limit: fengding };
+        this.login_socket.getMessage(function (socket) {
+            socket.send(JSON.stringify({
+                path: "CreateRoomCard",
+                data: data
+            }))
+        }, function (message) {
+            Global.log("CreateRoomCard");
+            Global.init_room(message);
+        });
+    },
+
+    // create_room: function (playCount, payType, balanceRate, includexi, fengding) {
+
+    //     var url = this.ip + "/getRoomCard";
+    //     var currencyType = 'Diamond';
+    //     var data = { uid: Global.unionid, playCount: playCount, payType: payType, balanceRate: balanceRate, includexi: includexi, currencyType: currencyType, maxScore: fengding };
+    //     this.xmlHttpRequest2(url, data, function (respone) {
+    //         var json = JSON.parse(respone);
+    //         //console.log(json);
+    //         Global.init_room(json);
+    //     })
+    // },
 
     get_record: function (uid, dayCount) {
         var url = this.ip + "/getRoomRecoder";
@@ -104,39 +229,30 @@ var ServerConnection = {
     },
 
     random_user: function () {
-        var url = "http://192.168.2.103:9800/test/createRandomUser";
-        this.xmlHttpRequest(url, function (respone) {
-            var json = JSON.parse(respone);
-            //console.log(json);
-            Global.init_login(json);
-        })
+        // var url = "http://192.168.2.103:9800/test/createRandomUser";
+        // this.xmlHttpRequest(url, function (respone) {
+        //     var json = JSON.parse(respone);
+        //     //console.log(json);
+        //     Global.init_login(json);
+        // })
     },
 
 
-    enter_room: function () {     
-        this.svc_send(CLIENT_MSG.CM_ENTER_ROOM, { roomid: Global.room_uid, unionid: Global.unionid, nick: Global.nickname, imgurl: Global.headimgurl });
+    enter_room: function () {
+        this.svc_send(CLIENT_MSG.CM_ENTER_ROOM, { guid: Global.room_uid });
     },
 
 
-    check_in_room: function (room_id) {
-        this.svc_send(CLIENT_MSG.CM_CHECK_IN_ROOM, { roomid: Global.room_uid, unionid: Global.unionid });
+    check_in_room: function () {
+        if (Global.room_uid) {
+            ServerConnection.enter_room();
+        }
     },
 
 
-    onopen: function (evt) {
-        console.log(222222222222);
-    },
 
-    socket: null,
 
     svc_connectPlatform: function () {
-
-        // console.log('111111111');
-        // ServerConnection.socket = new WebSocket("ws://192.168.2.104:9300");
-        // ServerConnection.socket.onopen = this.onopen;
-
-        // return;
-
 
         Global.log("Connecting");
         try {
@@ -148,8 +264,6 @@ var ServerConnection = {
                 connCb("-1", "connect error!");
         }
 
-        ServerConnection.check_connect_count += 1;
-        ServerConnection.connected = false;
         ServerConnection.svc_websocket.onopen = ServerConnection.svc_onOpen;
         ServerConnection.svc_websocket.onclose = ServerConnection.svc_onClose;
         ServerConnection.svc_websocket.onmessage = ServerConnection.svc_onMessage;
@@ -167,29 +281,44 @@ var ServerConnection = {
 
     svc_onOpen: function (evt) {
         Global.log("Connected to WebSocket server.");
-        ServerConnection.check_connect_count = 0;
-        ServerConnection.connected = true;
-
-        ServerConnection.check_in_room("111");
-
+        ServerConnection.checked = false;
+        var data = { guid: Global.guid, unionid: Global.unionid };
+        ServerConnection.svc_websocket.send(JSON.stringify(data));
     },
 
     svc_onClose: function (evt) {
         Global.log("Disconnected");
         ServerConnection.svc_websocket = null;
-        if (ServerConnection.check_connect_count <= ServerConnection.max_check_connect_count && !ServerConnection.connected) {
-            ServerConnection.svc_connectPlatform();
-        }
-        else
-            Global.leave_room();
+        Global.leave_room();
     },
 
     svc_onMessage: function (evt) {
-        if (ServerConnection.disconnect_count <= ServerConnection.max_disconnect_count || ServerConnection.error_disconnect) {
-            ServerConnection.disconnect_count = ServerConnection.max_disconnect_count + 1;
-            ServerConnection.error_disconnect = false;
-        }
+
+        console.log(evt.data);
+
         var data = JSON.parse(evt.data);
+        if (!ServerConnection.checked) {
+            if (data.error == 0) {
+                ServerConnection.checked = true;
+                ServerConnection.check_in_room();
+            }
+            return;
+        }
+        if (data.error) {
+            switch (data.error) {
+                case "ROOM_NOT_FOUND":
+                    {
+                        Global.room_uid = null;
+                        Global.messagebox.create_box('没有找到对应的房间');
+                    }
+                    break;
+                default:
+                    Global.messagebox.create_box(data.error);
+                    break;
+            }
+
+            return;
+        }
         var json = { id: data[0], msg: data[1] };
         Global.log(SERVER_MSG[json.id] + ": " + JSON.stringify(json.msg));
         switch (json.id) {
@@ -216,6 +345,13 @@ var ServerConnection = {
                         InGameManager.instance.on_leave_room_msg(json.msg);
                 }
                 break;
+            case SERVER_MSG.SM_RECONNECT:
+                {
+                    if (InGameManager.instance)
+                        InGameManager.instance.on_reconnect_msg(json.msg);
+                }
+                break;
+
             case SERVER_MSG.SM_READY_GAME:
                 {
                     if (InGameManager.instance)
@@ -295,6 +431,19 @@ var ServerConnection = {
                         InGameManager.instance.on_dismiss_game_result_msg(json.msg);
                 }
                 break;
+            case SERVER_MSG.SM_TEST_PAI:
+                {
+                    if (InGameManager.instance)
+                        InGameManager.instance.on_test_pai_msg(json.msg);
+                }
+                break;
+            case SERVER_MSG.SM_REFRESH_PAI:
+                {
+                    if (InGameManager.instance)
+                        InGameManager.instance.on_refresh_pai_msg(json.msg);
+                }
+                break;
+
         }
     },
 
@@ -337,19 +486,14 @@ var Global = {
 
     nickname: '游客',
     unionid: null,
-    openid: null,
+    guid: null,
     token: null,
     proxy: false,
     diamond: 0,
     gold: 0,
 
     enter_room: false,
-
-    uid: null,
     room_uid: null,
-    
-    active_room_uid :null,
-
 
     room_data: null,
 
@@ -430,28 +574,27 @@ var Global = {
         }
         //console.log('用户信息:',json);
 
-        if (json.openid == null)
-            return;
         if (json.headimgurl)
-            this.headimgurl = json.headimgurl;
+            Global.headimgurl = json.headimgurl;
         if (json.nick)
-            this.nickname = json.nick;
-        this.openid = json.openid;
-        this.unionid = json.uid;
+            Global.nickname = json.nick;
+        Global.unionid = json.unionid;
+        Global.guid = json.guid;
+        Global.token = json.token;
+        Global.proxy = json.isProxy;
+        Global.diamond = json.diamond;
+        Global.gold = json.gold;
+
         if (cc.sys.isNative) {
-            cc.sys.localStorage.setItem('local_openid', this.openid);
             cc.sys.localStorage.setItem('local_unionid', this.unionid);
         }
-        this.token = json.token;
-        this.proxy = json.isProxy;
-        this.diamond = json.diamondCount;
-        this.gold = json.goldCount;
         Global.common = common;
 
-        ServerConnection.svc_connectPlatform();
+        Global.loadScene('lobby');
     },
 
     init_room: function (json) {
+        console.log("room card info:" + json);
         if (json.error != null) {
 
             switch (json.error) {
@@ -471,15 +614,15 @@ var Global = {
 
             return;
         }
-        if (json.roomid == null)
+        if (json.guid == null)
             return;
-        this.room_uid = json.roomid;
-        if (json.goldCount)
-            this.gold = json.goldCount;
-        if (json.diamondCount)
-            this.diamond = json.diamondCount;
-        this.lobby.setMoney();
-        if (this.enter_room) {
+        Global.room_uid = json.guid;
+        if (json.gold)
+            Global.gold = json.gold;
+        if (json.diamond)
+            Global.diamond = json.diamond;
+        Global.lobby.setMoney();
+        if (Global.enter_room) {
             ServerConnection.enter_room();
         }
         else {
@@ -495,21 +638,22 @@ var Global = {
     leave_room: function () {
         //this.ingame = null;
         window.callStaticMethod(0, 'cocosLog:lobby isLoading');
-        this.loadScene('lobby');
+        Global.loadScene('lobby');
     },
 
 
     on_check_in_room_msg: function (json) {
-        console.log(json);
-        if(json.roomid!=null)
-        {
-            Global.room_uid = json.roomid;
-            ServerConnection.enter_room();
-        }
-        else
-        {
-            Global.loadScene('lobby');  
-        }
+        // console.log(json);
+        // if (json.roomid != null) {
+        //     Global.room_uid = json.roomid;
+        //     ServerConnection.enter_room();
+        // }
+        // else {
+        //     if (Global.active_room_uid != null) {
+        //         Global.room_uid = Global.active_room_uid;
+        //         ServerConnection.enter_room();
+        //     }
+        // }
     },
 
 
@@ -536,14 +680,14 @@ var Global = {
 
         this.room_data = json;
 
-        if (json.self)
-            this.uid = json.self;
-
         if (InGameManager.instance == null) {
-            this.loadScene('ingame');
+            Global.loadScene('ingame');
         }
-        else
-            InGameManager.instance.set_room_info();
+        else {
+            InGameManager.instance.init_game();
+            InGameManager.instance.init_room_info();
+            InGameManager.instance.init_player_info();
+        }
     },
 
 
@@ -567,13 +711,10 @@ var Global = {
             }
         }
 
-        this.sync_data = json;
+        this.room_data = json;
 
         if (InGameManager.instance == null) {
-            this.loadScene('ingame');
-        }
-        else {
-            InGameManager.instance.on_sync_room_msg();
+            Global.loadScene('ingame');
         }
     },
 
@@ -606,11 +747,10 @@ var CLIENT_MSG;
     CLIENT_MSG[CLIENT_MSG["CM_START_GAME"] = 4] = "CM_START_GAME";
     CLIENT_MSG[CLIENT_MSG["CM_GET_ROOM_INFO"] = 5] = "CM_GET_ROOM_INFO";
     CLIENT_MSG[CLIENT_MSG["CM_CHU_PAI"] = 6] = "CM_CHU_PAI";
-    CLIENT_MSG[CLIENT_MSG["CM_RESPON_CHU_PAI"] = 7] = "CM_RESPON_CHU_PAI";
-    CLIENT_MSG[CLIENT_MSG["CM_HUAN_PAI"] = 8] = "CM_HUAN_PAI";
-    CLIENT_MSG[CLIENT_MSG["CM_MAI_ZHUANG"] = 9] = "CM_MAI_ZHUANG";
-    CLIENT_MSG[CLIENT_MSG["CM_BROADCAST"] = 10] = "CM_BROADCAST";
-    CLIENT_MSG[CLIENT_MSG["CM_DISMISS_GAME"] = 11] = "CM_DISMISS_GAME";
+    CLIENT_MSG[CLIENT_MSG["CM_TEST_PAI"] = 7] = "CM_TEST_PAI";
+    CLIENT_MSG[CLIENT_MSG["CM_MAI_ZHUANG"] = 8] = "CM_MAI_ZHUANG";
+    CLIENT_MSG[CLIENT_MSG["CM_BROADCAST"] = 9] = "CM_BROADCAST";
+    CLIENT_MSG[CLIENT_MSG["CM_DISMISS_GAME"] = 10] = "CM_DISMISS_GAME";
 })(CLIENT_MSG || (CLIENT_MSG = {}));
 var SERVER_MSG;
 (function (SERVER_MSG) {
@@ -621,16 +761,18 @@ var SERVER_MSG;
     SERVER_MSG[SERVER_MSG["SM_START_GAME"] = 4] = "SM_START_GAME";
     SERVER_MSG[SERVER_MSG["SM_MO_PAI"] = 5] = "SM_MO_PAI";
     SERVER_MSG[SERVER_MSG["SM_CHU_PAI"] = 6] = "SM_CHU_PAI";
-    SERVER_MSG[SERVER_MSG["SM_HUAN_PAI"] = 7] = "SM_HUAN_PAI";
-    SERVER_MSG[SERVER_MSG["SM_PENG_PAI"] = 8] = "SM_PENG_PAI";
-    SERVER_MSG[SERVER_MSG["SM_GANG_PAI"] = 9] = "SM_GANG_PAI";
-    SERVER_MSG[SERVER_MSG["SM_HU_PAI"] = 10] = "SM_HU_PAI";
-    SERVER_MSG[SERVER_MSG["SM_GAME_BALANCE"] = 11] = "SM_GAME_BALANCE";
-    SERVER_MSG[SERVER_MSG["SM_SYNC_ROOM_STATE"] = 12] = "SM_SYNC_ROOM_STATE";
-    SERVER_MSG[SERVER_MSG["SM_MAI_ZHUANG"] = 13] = "SM_MAI_ZHUANG";
-    SERVER_MSG[SERVER_MSG["SM_BROADCAST"] = 14] = "SM_BROADCAST";
-    SERVER_MSG[SERVER_MSG["SM_DISMISS_GAME"] = 15] = "SM_DISMISS_GAME";
-    SERVER_MSG[SERVER_MSG["SM_DISMISS_GAME_RESULT"] = 16] = "SM_DISMISS_GAME_RESULT";
+    SERVER_MSG[SERVER_MSG["SM_REFRESH_PAI"] = 7] = "SM_REFRESH_PAI";
+    SERVER_MSG[SERVER_MSG["SM_TEST_PAI"] = 8] = "SM_TEST_PAI";
+    SERVER_MSG[SERVER_MSG["SM_PENG_PAI"] = 9] = "SM_PENG_PAI";
+    SERVER_MSG[SERVER_MSG["SM_GANG_PAI"] = 10] = "SM_GANG_PAI";
+    SERVER_MSG[SERVER_MSG["SM_HU_PAI"] = 11] = "SM_HU_PAI";
+    SERVER_MSG[SERVER_MSG["SM_GAME_BALANCE"] = 12] = "SM_GAME_BALANCE";
+    SERVER_MSG[SERVER_MSG["SM_SYNC_ROOM_STATE"] = 13] = "SM_SYNC_ROOM_STATE";
+    SERVER_MSG[SERVER_MSG["SM_MAI_ZHUANG"] = 14] = "SM_MAI_ZHUANG";
+    SERVER_MSG[SERVER_MSG["SM_BROADCAST"] = 15] = "SM_BROADCAST";
+    SERVER_MSG[SERVER_MSG["SM_DISMISS_GAME"] = 16] = "SM_DISMISS_GAME";
+    SERVER_MSG[SERVER_MSG["SM_DISMISS_GAME_RESULT"] = 17] = "SM_DISMISS_GAME_RESULT";
+    SERVER_MSG[SERVER_MSG["SM_RECONNECT"] = 18] = "SM_RECONNECT";
 })(SERVER_MSG || (SERVER_MSG = {}));
 
 var State = {

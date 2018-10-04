@@ -41,6 +41,8 @@ cc.Class({
 
     close:function () {
         Global.soundmanager.play_button_click();
+        Global.room_uid = null;
+        this.value_label.string = "";
         Global.disappear_action(this.node);
     },
 
@@ -60,6 +62,10 @@ cc.Class({
             {
                 Global.room_uid = text;
                 ServerConnection.enter_room();
+                
+                this.values = [];
+                this.value_label.string = "";  
+                Global.disappear_action(this.node);
             }
         }
     },

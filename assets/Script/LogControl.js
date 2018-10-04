@@ -23,10 +23,10 @@ cc.Class({
         Global.logview = this;
         cc.game.addPersistRootNode(this.node);
         this.node.setGlobalZOrder(1000);
-        if(cc.sys.isNative)
-        {
-           this.show_btn.node.active = false;
-        }
+        // if(cc.sys.isNative)
+        // {
+        //    this.show_btn.node.active = false;
+        // }
     },
 
     clear_onclick:function(){

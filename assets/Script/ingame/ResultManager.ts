@@ -35,24 +35,25 @@ export default class NewClass extends cc.Component {
     }
 
     set_result_data(json){
-        this.data = json.score;   
-        this.data_card = json.card;
+        this.data = json;   
+        this.data_card =  Global.room_data.card;
     }
 
     show_result(){
 
-        Global.active_room_uid = null;
+        Global.room_uid = null;
 
         var total_scores = [];   
         for(var i=0;i<this.data.length;i++)
         {
             var temp = this.data[i].score;
             var temp2 = {};
+            temp2.guid = this.data[i].guid;
             temp2.score = 0;
             temp2.winner = false;
-            for(var j=0;j<temp.score.length;j++)
+            for(var j=0;j<temp.length;j++)
             {
-                temp2.score+=temp.score[j];
+                temp2.score+=temp[j];
             }
             total_scores.push(temp2);
         }
@@ -82,6 +83,8 @@ export default class NewClass extends cc.Component {
             }
         }
 
+        console.log(total_scores);
+
         for(var i=0;i<this.node_items.length;i++)
         {
             if(i<this.data.length)
@@ -91,9 +94,9 @@ export default class NewClass extends cc.Component {
 
                 var player = null;
                 if (InGameManager.instance != null)
-                    player = InGameManager.instance.getPlayerByID(data2.uid);
+                    player = InGameManager.instance.getPlayerByID(data2.guid);
                 else if (RecordManager.instance != null)
-                    player = RecordManager.instance.getPlayerByID(data2.uid);
+                    player = RecordManager.instance.getPlayerByID(data2.guid);
 
 
                 var content = node.getChildByName('scrollview').getComponent(cc.ScrollView).content;
@@ -106,19 +109,19 @@ export default class NewClass extends cc.Component {
                 var icon = node_info.getChildByName('icon').getComponent(cc.Sprite);
                 icon.spriteFrame = player.icon.spriteFrame;
                 var label_ID = node_info.getChildByName('ID').getComponent(cc.Label);
-                label_ID.string = '';
+                label_ID.string = "ID:" + player.get_uid();
                 var node_host = node_info.getChildByName('host');
-                node_host.active = player.get_unionid() == this.data_card.owner;
-                console.log('~~~~~~~~~~~~~房主'+player.get_unionid(),this.data_card.owner);
+                node_host.active = player.get_uid() == this.data_card.owner;
+               // console.log('~~~~~~~~~~~~~房主'+player.get_unionid(),this.data_card.owner);
 
                 var data_score = data2.score;
         
                 for(var j = 0;j<items.length;j++)
                 {
-                    if(j<data_score.score.length)
+                    if(j<data_score.length)
                     {      
                        items[j].getChildByName('No').getComponent(cc.Label).string = '第'+(j+1).toString()+'局';
-                       items[j].getChildByName('score').getComponent(cc.Label).string = data_score.score[j]>0?'+'+data_score.score[j]:data_score.score[j];
+                       items[j].getChildByName('score').getComponent(cc.Label).string = data_score[j].toString();
                        items[j].active = true;
                     }
                     else
@@ -143,8 +146,9 @@ export default class NewClass extends cc.Component {
         if(InGameManager.instance != null)
         {
             window.callStaticMethod(0, 'cocosLog:InGameManager is not null');
-            Global.leave_room();
-            //ServerConnection.svc_closePlatform();
+           // Global.leave_room();
+            Global.room_uid = null;
+            ServerConnection.svc_closePlatform();
         }
         else if(RecordManager.instance!=null)
         {

@@ -53,18 +53,18 @@ cc.Class({
                 
         }
         else {
-             ServerConnection.login('123', 'oUQtWxNbxtl6WrywgcMSGzBpezRo', false);
-            //ServerConnection.login('123', 'testuid54515', false);
+            ServerConnection.sendUnionID("oUQtWxNbxtl6WrywgcMSGzBpezRo");
+            //ServerConnection.sendCode("001j1uaR18AYi91iVd9R1YEuaR1j1ua5");
         }
 
     },
 
     player1_onclick:function(){
-        ServerConnection.login('123', 'oUQtWxDOWvhp9xn0BULWPjCEvjQE', false);
+        ServerConnection.sendUnionID("");
     },
 
     player2_onclick:function(){
-        ServerConnection.login('123', 'oUQtWxH0lhVwlo_F6ehB0oKtVvmw', false);
+        ServerConnection.sendUnionID("");
     },
 
     get_location: function (msg) {
@@ -91,7 +91,8 @@ cc.Class({
 
     random_onclick: function () {
 
-        ServerConnection.random_user();
+        ServerConnection.sendTestUnionID();
+
     },
 
     show_address_btn_onclick: function () {

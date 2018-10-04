@@ -5,6 +5,7 @@ import ResultManager from "./ResultManager";
 import TimeManager from "./TimeManager";
 import ChatManager from "./ChatManager";
 import GPSManager from "./GPSManager";
+import { join } from "path";
 
 // Learn TypeScript:
 //  - [Chinese] http://www.cocos.com/docs/creator/scripting/typescript.html
@@ -72,7 +73,7 @@ export default class InGameManager extends cc.Component {
 
     gps: GPSManager = null;
 
-    node_setting:any = null;
+    node_setting: any = null;
 
     room_jushu_max = null;
     room_jushu_current = null;
@@ -222,13 +223,27 @@ export default class InGameManager extends cc.Component {
 
     start() {
         Global.soundmanager.play_music_ingame();
-        this.init_room_info();
         this.init_game();
         this.init_room_info();
+        this.init_player_info();
+
+        if (this.player_self.data_info.shou)
+        {
+            this.show_game_btns([]);
+            this.dismiss_game_button.active = true;
+            this.leave_room_button.active = false;
+        }
+        else {
+            if (this.player_self.data_info.ready)
+                this.show_game_btns([]);
+            else
+                this.show_game_btns([0, 1]);
+        }
+
         this.jian_btn_onclick();
     }
 
-    
+
 
     load_record() {
         var self = this;
@@ -269,29 +284,18 @@ export default class InGameManager extends cc.Component {
         // }
     }
 
-    init_game() { 
+    init_game() {
         this.hide_maizhuang();
-        this.balance.hide_balance();
-        this.result.hide_result();
         this.set_time(null, null);
         this.set_node_count_label(0);
         this.set_jiangpai_data(null);
         this.set_middle_data(null);
-        this.show_game_btns([0, 1]);
+        this.show_game_btns([]);
         this.show_order_btns([]);
-        if (Global.room_uid != null)
-        {
-            this.node_room_id.string = "房号" + Global.room_uid;
-            Global.active_room_uid = Global.room_uid;
-        }
-            
-        else
-            this.node_room_id.string = "";
-        this.set_jushu();  
         this.init_player();
     }
 
-    on_sync_room_msg(){
+    on_sync_room_msg() {
         this.init_player();
     }
 
@@ -302,32 +306,41 @@ export default class InGameManager extends cc.Component {
     }
 
     init_room_info() {
+
         if (Global.room_data != null) {
+
+            if (Global.room_data.jiangpai) {
+                this.data_jiangpai = Global.room_data.jiangpai;
+            }
+
+
+            if (Global.room_data.size2) {
+                this.set_node_count_label(Global.room_data.size2);
+            }
+
             var card_data = Global.room_data.card;
             var ret = '';
-            if (card_data.includexi) {
+            if (card_data.xi == true) {
                 ret += '带喜儿;'
             }
             else {
                 ret += '不带喜儿;'
             }
 
-            if (card_data.balanceRate) {
-                var rate = card_data.balanceRate;
-                if (rate[0] == rate[1] == rate[2] == 1)
-                {
+            if (card_data.rate) {
+                var rate = card_data.rate;
+                if (rate[0] == rate[1] == rate[2] == 1) {
                     ret += '无倍数;';
                     this.is_maizhuang = false;
                 }
-                else
-                {
+                else {
                     ret += '倍数' + rate[0].toString() + ',' + rate[1].toString() + ',' + rate[2].toString() + ';';
                     this.is_maizhuang = true;
-                }              
+                }
             }
 
-            if (card_data.maxScore) {
-                var max_score = card_data.maxScore;
+            if (card_data.limit) {
+                var max_score = card_data.limit;
                 console.log(max_score);
                 switch (max_score) {
                     case 0:
@@ -342,8 +355,8 @@ export default class InGameManager extends cc.Component {
                 ret += '不封顶;';
             }
 
-            if (card_data.payType) {
-                switch (card_data.payType) {
+            if (card_data.pay) {
+                switch (card_data.pay) {
                     case 1:
                         ret += '房主支付';
                         break;
@@ -357,17 +370,25 @@ export default class InGameManager extends cc.Component {
             }
 
             this.node_room_info.string = ret;
-            if (card_data.maxUseCount && card_data.canUseCount) {
-                var temp = card_data.maxUseCount - card_data.canUseCount;
-                if(temp == 0)
-                temp = 1;
-                this.room_jushu_current = temp;
-                this.room_jushu_max = card_data.maxUseCount;
-            }
+
+            this.room_jushu_current = card_data.used;
+            this.room_jushu_max = card_data.maxUseCount;
+            this.set_jushu();
+
+            Global.room_uid = card_data.guid;
+            this.node_room_id.string = "房号" + Global.room_uid;
+
+
         }
-        else
-        {
+        else {
             this.node_room_info.string = '';
+
+            this.room_jushu_current = 0;
+            this.room_jushu_max = 0;
+            this.set_jushu();
+
+            Global.room_uid = null;
+            this.node_room_id.string = "房号" + "";
         }
     }
 
@@ -382,156 +403,12 @@ export default class InGameManager extends cc.Component {
         this.player_1.reset();
         this.player_2.reset();
         this.player_self.reset();
-
-        if(Global.sync_data != null)
-        {
-            var jiang = Global.sync_data.jiang;
-            this.set_jiangpai_data(jiang);
-            var size2 = Global.sync_data.size2;
-            this.set_node_count_label(size2);
-            this.show_game_btns([]);
-
-            var self = Global.sync_data.self;
-
-            Global.uid = self;
-            
-            var shou = Global.sync_data.shou;
-            var players_data = Global.sync_data.players;     
-
-            var self_index = 0;
-            var len = players_data.length;
-            for (var i = 0; i < len; i++) {
-                if (players_data[i].uid == self) {
-                    self_index = i;
-                    this.player_self.set_info(players_data[i]);
-                    break;
-                }
-            }
-            switch (self_index) {
-                case 0:
-                    {
-                        if (len == 2) {
-                            this.player_1.set_info(null);
-                            this.player_2.set_info(players_data[1]);
-                        }
-                        else if (len == 3) {
-                            this.player_1.set_info(players_data[2]);
-                            this.player_2.set_info(players_data[1]);
-                        }
-                    }
-                    break;
-                case 1:
-                    {
-                        if (len == 2) {
-                            this.player_1.set_info(players_data[0]);
-                            this.player_2.set_info(null);
-                        }
-                        else if (len == 3) {
-                            this.player_1.set_info(players_data[0]);
-                            this.player_2.set_info(players_data[2]);
-                        }
-                    }
-                    break;
-                case 2:
-                    {
-
-                        this.player_1.set_info(players_data[1]);
-                        this.player_2.set_info(players_data[0]);
-                    }
-                    break;
-            }
-
-            this.player_1.init();
-            this.player_2.init();
-            this.player_self.init();
-            this.player_self.set_data_shou(shou);
-
-
-            var next_player = Global.sync_data.next_player;
-            var player = this.getPlayerByID(next_player);
-            player.can_move = true;
-
-
-            this.dismiss_game_button.active = true;
-            this.leave_room_button.active = false;
-    
-            this.player_1.setState(State.IN_GAME);
-            this.player_2.setState(State.IN_GAME);
-            this.player_self.setState(State.IN_GAME);
-    
-            this.player_1.set_prepare();
-            this.player_2.set_prepare();
-            this.player_self.set_prepare();
-    
-            this.broadcast_location();
-
-            if(Global.room_data!=null)
-            {
-                var clients_data = Global.room_data.clients;
-                var len = clients_data.length;
-                for (var i = 0; i < len; i++) {
-                    if (clients_data[i].info.unionid == this.player_1.get_unionid()) {
-                        clients_data[i].uid = this.player_1.get_uid();
-                    }
-                    else if (clients_data[i].info.unionid == this.player_2.get_unionid()) {
-                        clients_data[i].uid = this.player_2.get_uid();
-                    }
-                    else if (clients_data[i].info.unionid == this.player_self.get_unionid()) {
-                        clients_data[i].uid = this.player_self.get_uid();
-                    }
-                }
-            }
-            else
-            {
-                Global.room_data = {};
-                Global.room_data.card = Global.sync_data.card;
-                Global.room_data.self =  Global.sync_data.self;
-                Global.room_data.state = Global.sync_data.state;
-                Global.room_data.clients = [];
-                var temp = null;
-                if(this.player_1.data_info!=null)
-                {
-                    temp = {};
-                    temp.uid = this.player_1.get_uid();
-                    temp.info = this.player_1.data_info.info;
-                    Global.room_data.clients.push(temp);
-                }
-                if(this.player_2.data_info!=null)
-                {
-                    temp = {};
-                    temp.uid = this.player_2.get_uid();
-                    temp.info = this.player_2.data_info.info;
-                    Global.room_data.clients.push(temp);
-                }
-                if(this.player_self.data_info!=null)
-                {
-                    temp = {};
-                    temp.uid = this.player_self.get_uid();
-                    temp.info = this.player_self.data_info.info;
-                    Global.room_data.clients.push(temp);
-                }
-
-                console.log(Global.room_data);
-                
-            } 
-
-            console.log("player_1.uid~~~~~~~~~~~~~~" + this.player_1.get_uid());
-            console.log("player_2.uid~~~~~~~~~~~~~~" + this.player_2.get_uid());
-            console.log("player_self.uid~~~~~~~~~~~~~~" + this.player_self.get_uid());
-            var clients_data = Global.room_data.clients;
-                var len = clients_data.length;
-                for (var i = 0; i < len; i++) {        
-                    console.log("unionid~~~~~~~~~~"+clients_data[i].info.unionid+"~~~~~~~~uid~~~~~~~"+clients_data[i].uid)
-                }
-
-            Global.sync_data = null;
-        }
-        else if (Global.room_data != null) {
-            var clients_data = Global.room_data.clients;
+        if (Global.room_data != null) {
+            var clients_data = Global.room_data.players;
             var self_index = 0;
             var len = clients_data.length;
             for (var i = 0; i < len; i++) {
-                if (clients_data[i].uid == Global.uid) {
+                if (clients_data[i].guid == Global.guid) {
                     self_index = i;
                     this.player_self.set_info(clients_data[i]);
                     break;
@@ -578,10 +455,55 @@ export default class InGameManager extends cc.Component {
     }
 
 
+    set_player_info(player) {
+        var data = player.data_info;
+        if (data == null)
+            return;
+        player.set_uid(data.guid);
+        player.set_name(data.nick);
+        player.set_icon(data.headimgurl);
+        if (data.ready)
+            player.setState(State.IN_READY);
+        else
+            player.setState(State.IN_GAME);
+        player.set_prepare();
+        if (data.qi) {
+            player.set_data_out(data.qi);
+        }
+        if (data.di) {
+            player.set_data_di(data.di);
+        }
+        if (data.shou) {
+            player.set_data_shou(data.shou);
+        }
+        if (data.size1) {
+            player.set_num(data.size1);
+        }
+        if (data.maizhuang) {
+            player.set_maizhuang(true);
+        }
+        else {
+            player.set_maizhuang(false);
+        }
+    }
 
 
-    set_room_info() {
-        this.init_player();
+    init_player_info() {
+        this.set_player_info(this.player_1);
+        this.set_player_info(this.player_2);
+        this.set_player_info(this.player_self);
+
+        if (Global.room_data.current) {
+            var player = this.getPlayerByID(Global.room_data.current);
+            this.set_time(player, this.auto_chupai);
+        }
+
+        if (Global.room_data.test) {
+            if (Global.guid == Global.room_data.test.guid) {
+                this.on_test_pai_msg(Global.room_data.test);
+            }
+        }
+
     }
 
     show_game_btns(data: Array<number>) {
@@ -683,19 +605,25 @@ export default class InGameManager extends cc.Component {
     }
 
     dismiss_game_btn_onclick() {
-        ServerConnection.svc_send(CLIENT_MSG.CM_DISMISS_GAME, {});
-        this.node_menu.active = false;
+        // ServerConnection.svc_send(CLIENT_MSG.CM_DISMISS_GAME, {});
+        // this.node_menu.active = false;
+
+        // var text = "玩家 " + this.player_self.data_info.info.nick + " 申请解散房间，请问是否同意？（倒计时结束未选择，则默认同意解散）";
+        // this.dismiss_room_box = Global.messagebox.create_box_confirm(text, function (ret) {
+
+        // });
+
     }
 
-    setting_btn_onclick(){
+    setting_btn_onclick() {
         this.node_setting.active = true;
     }
 
     leave_room_btn_onclick() {
-        Global.active_room_uid = null;
         ServerConnection.svc_send(CLIENT_MSG.CM_LEAVE_ROOM, {});
-      //  ServerConnection.svc_closePlatform();
-        Global.leave_room();
+        Global.room_uid = null;
+        ServerConnection.svc_closePlatform();
+        //  Global.leave_room();
         this.node_menu.active = false;
     }
 
@@ -708,7 +636,7 @@ export default class InGameManager extends cc.Component {
 
     play_btn_onclick() {
         console.log('play_btn on click');
-        ServerConnection.svc_send(CLIENT_MSG.CM_READY_GAME, { state: State.IN_READY });
+        ServerConnection.svc_send(CLIENT_MSG.CM_READY_GAME, { ready: true });
     }
 
     chupai_btn_onclick() {
@@ -721,35 +649,35 @@ export default class InGameManager extends cc.Component {
 
     peng_btn_onclick() {
         console.log('peng_btn on click');
-        ServerConnection.svc_send(CLIENT_MSG.CM_RESPON_CHU_PAI, { type: PaiMessageResponse.RESULT_PENG });
+        ServerConnection.svc_send(CLIENT_MSG.CM_TEST_PAI, { test: true });
         this.hide_buttons();
     }
 
     gang_btn_onclick() {
         console.log('gang_btn on click');
-        ServerConnection.svc_send(CLIENT_MSG.CM_RESPON_CHU_PAI, { type: PaiMessageResponse.RESULT_GANG });
+        ServerConnection.svc_send(CLIENT_MSG.CM_TEST_PAI, { test: true });
         this.hide_buttons();
     }
 
     hu_btn_onclick() {
         console.log('hu_btn on click');
         Global.soundmanager.play_sound('hu');
-        ServerConnection.svc_send(CLIENT_MSG.CM_RESPON_CHU_PAI, { type: PaiMessageResponse.RESULT_HU });
+        ServerConnection.svc_send(CLIENT_MSG.CM_TEST_PAI, { test: true });
         this.hide_buttons();
     }
 
     guo_btn_onclick() {
         console.log('guo_btn on click');
-        ServerConnection.svc_send(CLIENT_MSG.CM_RESPON_CHU_PAI, { type: PaiMessageResponse.RESULT_NONE });
-        if (this.current_player == this.player_self) {
-            if (this.time.getTimeLeft() >= 0) {
-                this.time.setCallBack(this.auto_chupai);
-                this.player_self.can_move = true;
-            }
-            else {
-                //this.auto_chupai();
-            }
-        }
+        ServerConnection.svc_send(CLIENT_MSG.CM_TEST_PAI, { test: false });
+        // if (this.current_player == this.player_self) {
+        //     if (this.time.getTimeLeft() >= 0) {
+        //         this.time.setCallBack(this.auto_chupai);
+        //         this.player_self.can_move = true;
+        //     }
+        //     else {
+        //         //this.auto_chupai();
+        //     }
+        // }
         this.hide_buttons();
     }
 
@@ -820,29 +748,25 @@ export default class InGameManager extends cc.Component {
 
     public set_card_data(node: cc.Node, data: any) {
 
-        if(data == null)
-        {
+        if (data == null) {
             var sprite = node.getComponent(cc.Sprite);
-            if (sprite != null)
-            {
+            if (sprite != null) {
                 sprite.enabled = false;
             }
             var children = node.children;
-            for (var i = 0; i < children.length; i++) {        
+            for (var i = 0; i < children.length; i++) {
                 children[i].active = false;
             }
         }
-        else
-        {
+        else {
             var icon_name = this.get_card_icon_name(data.type, data.value);
             var frame = InGameManager.instance.pai_atlas.getSpriteFrame(icon_name);
             var sprite = node.getComponent(cc.Sprite);
-            if (sprite != null)
-            {
+            if (sprite != null) {
                 sprite.enabled = true;
                 sprite.spriteFrame = frame;
             }
-               
+
             var children = node.children;
             for (var i = 0; i < children.length; i++) {
                 sprite = children[i].getComponent(cc.Sprite);
@@ -854,7 +778,7 @@ export default class InGameManager extends cc.Component {
                 children[i].active = i < data.count;
             }
         }
-  
+
     }
 
     get_card_icon_name(type, value) {
@@ -887,6 +811,9 @@ export default class InGameManager extends cc.Component {
 
 
     on_huanpai_msg(json) {
+
+        return;
+
         if (json.error) {
             Global.messagebox.create_box(json.error);
             return;
@@ -895,7 +822,7 @@ export default class InGameManager extends cc.Component {
         player.set_data_di(json.di);
         if (json.shou) {
             player.set_data_shou(json.shou);
-            if (json.uid = Global.uid)
+            if (json.guid = Global.guid)
                 this.check_data_shou(player, player.get_data_shou());
         }
     }
@@ -909,16 +836,22 @@ export default class InGameManager extends cc.Component {
         console.log("player_1.uid~~~~~~~~~~~~~~" + this.player_1.get_uid());
         console.log("player_2.uid~~~~~~~~~~~~~~" + this.player_2.get_uid());
         console.log("player_self.uid~~~~~~~~~~~~~~" + this.player_self.get_uid());
-        console.log("json.uid~~~~~~~~~~~~~~~~~~~~~~"+ json.uid);
+        console.log("json.uid~~~~~~~~~~~~~~~~~~~~~~" + json.guid);
 
-        var player = this.getPlayerByID(json.uid)
+        var player = this.getPlayerByID(json.guid)
 
         console.log(player);
 
-        player.setState(State.IN_READY);
+        if (json.ready) {
+            player.setState(State.IN_READY);
+        }
+        else {
+            player.setState(State.IN_NONE);
+        }
+
         player.set_prepare();
-        if (player.get_uid() == Global.uid) {
-            if (json.state == State.IN_READY.toString())
+        if (player.get_uid() == Global.guid) {
+            if (json.ready)
                 this.show_game_btns([]);
             else
                 this.show_game_btns([0, 1]);
@@ -937,7 +870,7 @@ export default class InGameManager extends cc.Component {
         this.set_node_count_label(json.size2);
         this.set_jiangpai_data(json.jiang);
 
-        var player = this.getPlayerByID(json.uid);
+        var player = this.getPlayerByID(json.guid);
         var list = json.shou;
         var list_temp = [];
         for (var i = 0; i < 5; i++) {
@@ -994,17 +927,24 @@ export default class InGameManager extends cc.Component {
     }
 
     set_start_game_msg(json) {
-        var player = this.getPlayerByID(json.uid);
+        var player = this.getPlayerByID(json.guid);
         this.show_game_btns([]);
         this.set_node_count_label(json.size2);
         this.set_jiangpai_data(json.jiang);
-        var list = json.shou;
-        var num = list.length;
-        this.check_data_shou(player, list);
-        if (player == this.player_self) {
-            this.player_1.set_num(num);
-            this.player_2.set_num(num);
-            this.player_self.set_num(num);
+        this.room_jushu_current = json.cardused;
+        this.set_jushu();
+        if (json.di) {
+            player.set_data_di(json.di);
+        }
+
+        if (json.shou) {
+            player.set_data_shou(json.shou);
+            var num = json.shou.length;
+            if (player == this.player_self) {
+                this.player_1.set_num(num);
+                this.player_2.set_num(num);
+                this.player_self.set_num(num);
+            }
         }
     }
 
@@ -1049,21 +989,29 @@ export default class InGameManager extends cc.Component {
             Global.messagebox.create_box(json.error);
             return;
         }
-        var player = this.getPlayerByID(json.uid);
+        var player = this.getPlayerByID(json.guid);
         this.current_player = player;
-        this.set_time(player, this.auto_chupai);
-        if (json.uid == Global.uid) {
+
+        if (json.di) {
+            player.set_data_di(json.di);
+        }
+
+        if (json.guid == Global.guid) {
             var value = json.pai;
             this.data_new_card = value;
             player.push_data_shou(value);
             player.can_move = true;
-            this.check_data_shou(player, player.get_data_shou());
+            player.set_data_shou(player.get_data_shou());
         }
         else {
 
         }
+
         player.set_num(json.size1);
         this.set_node_count_label(json.size2);
+
+        this.set_time(player, this.auto_chupai);
+
     }
 
     set_time(player, callback) {
@@ -1094,45 +1042,15 @@ export default class InGameManager extends cc.Component {
             return;
         }
 
-        
         if (this.data_middle_card != null) {
             var player = this.getPlayerByID(this.data_middle_card.uid);
             player.push_data_out(this.data_middle_card.value);
             this.set_middle_data(null);
         }
 
-        this.clear_time();
-        var player = this.getPlayerByID(json.uid);
-        if (json.uid != Global.uid) {
-            this.start_card_animation(json.uid, json.pai);
-            player.set_num(json.size1);
-            var list = [];
-            var data_shou = this.player_self.get_data_shou();
-            for (var i = 0; i < data_shou.length; i++) {
-                list.push(data_shou[i]);
-            }
-            list.push(json.pai);
-
-            var bts = [];
-            if (this.player_self.check_hu(list))
-                bts.push(3);
-            if (this.player_self.check_gang(json.pai))
-                bts.push(2);
-            if (this.player_self.check_peng(json.pai))
-                bts.push(1);
-            if (bts.length > 0) {
-                bts.push(4);
-                this.set_time(this.player_self, this.guo_btn_onclick);
-                this.show_order_btns(bts);
-            }
-            else
-                this.guo_btn_onclick();
-        }
-        else {
-            this.data_new_card = null;
-            player.set_data_shou(json.shou);
-            player.set_num(json.shou.length);
-            ServerConnection.svc_send(CLIENT_MSG.CM_RESPON_CHU_PAI, { type: PaiMessageResponse.RESULT_NONE });
+        var player = this.getPlayerByID(json.guid);
+        if (json.guid != Global.guid) {
+            this.start_card_animation(json.guid, json.pai);
         }
 
     }
@@ -1180,10 +1098,19 @@ export default class InGameManager extends cc.Component {
             Global.messagebox.create_box(json.error);
             return;
         }
-        var player = this.getPlayerByID(json.uid);
-        player.set_info(null);
-        player.init();
+        var player = this.getPlayerByID(json.guid);
+        player.set_lixian(true);
     }
+
+    on_reconnect_msg(json) {
+        if (json.error) {
+            Global.messagebox.create_box(json.error);
+            return;
+        }
+        var player = this.getPlayerByID(json.guid);
+        player.set_lixian(false);
+    }
+
 
 
     on_gangpai_msg(json) {
@@ -1191,16 +1118,17 @@ export default class InGameManager extends cc.Component {
             Global.messagebox.create_box(json.error);
             return;
         }
-        var player = this.getPlayerByID(json.uid);
+        var player = this.getPlayerByID(json.guid);
+        this.current_player = player;
         player.set_data_di(json.di);
-        if (json.uid == Global.uid) {
+        if (json.guid == Global.guid) {
             player.set_data_shou(json.shou);
-            player.set_num(json.shou.length);
             this.hide_buttons();
         }
         else {
-            player.set_num(json.size1);
+            player.sort_node_own();
         }
+        player.set_num(json.size1);
         this.set_middle_data(null);
     }
 
@@ -1210,20 +1138,19 @@ export default class InGameManager extends cc.Component {
             Global.messagebox.create_box(json.error);
             return;
         }
-        var player = this.getPlayerByID(json.uid);
+        var player = this.getPlayerByID(json.guid);
         this.current_player = player;
         this.set_time(player, this.auto_chupai);
         player.set_data_di(json.di);
-        if (json.uid == Global.uid) {
+        if (json.guid == Global.guid) {
             player.set_data_shou(json.shou);
-            player.set_num(json.shou.length);
             this.hide_buttons();
             player.can_move = true;
         }
         else {
             player.sort_node_own();
-            player.set_num(json.size1);
         }
+        player.set_num(json.size1);
         this.set_middle_data(null);
     }
 
@@ -1253,13 +1180,13 @@ export default class InGameManager extends cc.Component {
         //     this.result.show_result();
         // }
         // else {
-            this.balance.set_balance_data(json);
-            this.balance.show_balance();
+        // this.balance.set_balance_data(json);
+        this.balance.show_balance(json);
         //}
     }
 
     on_maizhuang_msg(json) {
-        var player = this.getPlayerByID(json.uid);
+        var player = this.getPlayerByID(json.guid);
         player.set_maizhuang(json.maizhuang);
     }
 
@@ -1268,7 +1195,7 @@ export default class InGameManager extends cc.Component {
             Global.messagebox.create_box(json.error);
             return;
         }
-        var player = this.getPlayerByID(json.uid);
+        var player = this.getPlayerByID(json.guid);
         var msg = json.msg;
         if (msg != null) {
             switch (msg.type) {
@@ -1315,6 +1242,79 @@ export default class InGameManager extends cc.Component {
         }
     }
 
+    on_test_pai_msg(json) {
+        var value = json.value;
+        switch (json.type) {
+            //碰
+            case 1:
+                {
+                    var bts = [];
+                    bts.push(1);
+                    bts.push(4);
+                    this.show_order_btns(bts);
+                }
+                break;
+            //杠
+            case 2:
+            case 3:
+                {
+                    var bts = [];
+                    bts.push(2);
+                    bts.push(4);
+                    this.show_order_btns(bts);
+                }
+                break;
+            //胡
+            case 4:
+            case 5:
+                {
+                    var bts = [];
+                    bts.push(3);
+                    bts.push(4);
+                    this.show_order_btns(bts);
+                }
+                break;
+        }
+    }
+
+
+    on_refresh_pai_msg(json) {
+        var player = this.getPlayerByID(json.guid);
+        switch (json.type) {
+            case 1:
+                {
+                    if (json.di) {
+                        player.set_data_di(json.di);
+                    }
+                    if (json.guid == Global.guid) {
+                        var value = json.pai;
+                        this.data_new_card = value;
+                        player.set_data_shou(json.shou);
+                        player.can_move = true;
+                    }
+                    else {
+                        player.sort_node_own();
+                    }
+                    this.set_time(player, this.auto_chupai);
+                }
+                break;
+            case 2:
+                {
+                    if (json.di)
+                        player.set_data_di(json.di);
+                    if (json.guid == Global.guid) {
+                        this.data_new_card = null;
+                        player.set_data_shou(json.shou);
+                    }
+                    else {
+                        player.sort_node_own();
+                    }
+                }
+                break;
+        }
+        player.set_num(json.size1);
+        this.set_node_count_label(json.size2);
+    }
 
     auto_chupai() {
         if (InGameManager.instance == null)

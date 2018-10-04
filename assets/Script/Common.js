@@ -80,9 +80,13 @@ var Common = function(){
         }
     }
 
+
     function check(p){
     
+
         clear_brother(p);
+
+
         switch(p.check)
         {
             case 1<<0:
@@ -98,6 +102,7 @@ var Common = function(){
                 check_last(p);
                 break;   
         }
+     
     }
     function check_next(p)
     {
@@ -183,6 +188,8 @@ var Common = function(){
             }
             p.brother[i] = null;
         }
+
+
     }
 
     function check_brother(p,index)
@@ -267,6 +274,7 @@ var Common = function(){
                 }
                 break;
         }
+        
     }
 
 
@@ -386,9 +394,11 @@ var Common = function(){
                 }
             }
         }
+
         return results;
     }
 
 }    
 
 module.exports = new Common();
+

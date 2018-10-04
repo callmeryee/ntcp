@@ -1,1 +1,1 @@
-node version_generator.js -v 1.0.0 -u http://ntcp.wohnb.com/test/hot-update/remote-assets/ -s build/jsb-binary/ -d assets/manifest/
+node version_generator.js -v 1.0.0 -u http://47.96.188.12/test/hot-update/remote-assets/ -s build/jsb-binary/ -d assets/manifest/

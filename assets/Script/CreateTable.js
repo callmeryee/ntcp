@@ -75,7 +75,7 @@ cc.Class({
         this.fengding = this.setFengDing();
         this.includexi = this.set_includexi();
         this.forceNew = true;
-        ServerConnection.create_room(this.playCount, this.payType, this.balanceRate, this.includexi,this.fengding);
+        ServerConnection.createRoom(this.playCount, this.payType, this.balanceRate, this.includexi,this.fengding);
         this.timer = 3;
     },
 

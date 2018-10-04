@@ -93,12 +93,14 @@ export default class TimeManager extends cc.Component {
      update (dt) {
          if(this.timer>=0)
          {
-             this.timer -= dt; 
-             if(this.timer<0)
+            this.timer -= dt; 
+            if(this.timer<0)
              {
                 //  if(this.finishcallback)
                 //  this.finishcallback();
-                 this.clearTime()
+                // this.clearTime()
+
+                this.setTime(16,null);
              }   
              else
              {
@@ -108,6 +110,7 @@ export default class TimeManager extends cc.Component {
                 }
                 this.time.active = true;  
              }
+      
          }
      }
 }

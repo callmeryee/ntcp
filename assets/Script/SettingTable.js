@@ -37,7 +37,6 @@ cc.Class({
 
     change_btn_onclick(){
         if (cc.sys.isNative) {
-            cc.sys.localStorage.setItem('local_openid', '');
             cc.sys.localStorage.setItem('local_unionid', '');
             Global.loadScene('login');
         }

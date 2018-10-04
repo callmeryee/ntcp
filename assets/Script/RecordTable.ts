@@ -28,7 +28,6 @@ export default class NewClass extends cc.Component {
     this.node.active = false;
     }
 
-    uid = '';
     daycount = '1';
     json = null;
 
@@ -39,14 +38,15 @@ export default class NewClass extends cc.Component {
     show(){
 
         this.json = null;
-        this.uid = Global.unionid;
 
         var len2 = this.container.children.length;
         for(var i=0;i<len2;i++)
         {
             this.container.children[i].active = false;
         }
-        ServerConnection.get_record(this.uid,this.daycount);
+        
+        ServerConnection.getGameRecord(Global.guid);
+
         this.node.active = true;
     }
 
@@ -130,7 +130,7 @@ export default class NewClass extends cc.Component {
                 }
                 else if(temp2 == winner_score)
                 {
-                    if(temp1 == this.uid)
+                    if(temp1 == Global.guid)
                     {
                         winner = temp1;
                         winner_score = temp2;
@@ -143,7 +143,7 @@ export default class NewClass extends cc.Component {
         
 
         obj.getChildByName('room').getComponent(cc.Label).string = data.roomid.toString();
-        obj.getChildByName('ret').getComponent(cc.Label).string = winner == this.uid? '赢':'输';
+        obj.getChildByName('ret').getComponent(cc.Label).string = winner == Global.guid? '赢':'输';
         obj.getChildByName('score').getComponent(cc.Label).string = score_string;
         obj.getChildByName('time').getComponent(cc.Label).string = time_string;
         //obj.getChildByName('button').setUserData(data.cardid);

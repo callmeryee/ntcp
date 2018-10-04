@@ -35,6 +35,7 @@ export default class Player extends cc.Component {
     score_label: cc.Label = null;
     icon: cc.Sprite = null;
     node_maizhuang: cc.Node = null;
+    node_lixian:cc.Node = null;
 
     public can_move: boolean = true;
 
@@ -44,10 +45,10 @@ export default class Player extends cc.Component {
     data_select: any = null;
 
     uid: any = null;
-    unionid: any = null;
 
     score: any = null;
 
+    state:null;
 
     public is_maizhuang = false;
 
@@ -74,6 +75,7 @@ export default class Player extends cc.Component {
         this.name_label = this.node_info.getChildByName('name').getComponent(cc.Label);
         this.node_prepare = this.node_info.getChildByName('prepare');
         this.node_maizhuang = this.node_info.getChildByName('maizhuang');
+        this.node_lixian = this.node_info.getChildByName("lixian");
         this.num_label = this.node_info.getChildByName('num').getComponent(cc.Label);
         this.score_label = this.node_info.getChildByName('score').getComponent(cc.Label);
         this.icon = this.node_info.getComponent(cc.Sprite);
@@ -253,8 +255,10 @@ export default class Player extends cc.Component {
     public clear() {
         this.can_move = false;
         this.set_num(0);
+        this.setState(State.IN_NONE);
         this.set_prepare();
         this.set_maizhuang(false);
+        this.set_lixian(false);
         this.set_data_di([]);
         this.set_data_shou([]);
         this.set_data_out([]);
@@ -262,24 +266,6 @@ export default class Player extends cc.Component {
 
     public init() {
         if (this.data_info != null) {
-
-            this.set_uid(this.data_info.uid);
-            this.set_unionid(this.data_info.info.unionid);
-
-            this.set_prepare();
-            if (this.data_info.info.nick)
-                this.set_name(this.data_info.info.nick);
-            if (this.data_info.info.imgurl)
-                this.set_icon(this.data_info.info.imgurl);
-            if (this.data_info.di) {
-                this.set_data_di(this.data_info.di);
-            }
-            if (this.data_info.qi) {
-                this.set_data_out(this.data_info.qi);
-            }
-            if (this.data_info.size1) {
-                this.set_num(this.data_info.size1);
-            }
             this.show(true);
         }
         else {
@@ -294,14 +280,12 @@ export default class Player extends cc.Component {
     }
 
     public setState(tag) {
-        if (this.data_info != null) {
-            this.data_info.state = tag.toString();
-        }
+        this.state = tag;
     }
 
     public getState() {
-        if (this.data_info != null) {
-            return this.data_info.state;
+        if (this.state != null) {
+            return this.state;
         }
         else
             return null;
@@ -329,9 +313,6 @@ export default class Player extends cc.Component {
         this.uid = uid;
     }
 
-    public set_unionid(unionid) {
-        this.unionid = unionid;
-    }
 
 
     public get_uid() {
@@ -356,16 +337,19 @@ export default class Player extends cc.Component {
         this.num_label.string = value.toString();
     }
 
-    public set_prepare() {
-        if (this.data_info != null)
-            this.node_prepare.active = this.data_info.state == State.IN_READY.toString();
-        else
-            this.node_prepare.active = false;
+    public set_prepare() { 
+        this.node_prepare.active = this.state == State.IN_READY;
+
     }
 
     public set_maizhuang(tag: boolean) {
         this.is_maizhuang = tag;
         this.node_maizhuang.active = tag;
+    }
+
+    public set_lixian(tag:boolean)
+    {
+        this.node_lixian.active = tag;
     }
 
     public set_icon(url: string) {

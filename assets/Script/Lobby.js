@@ -6,126 +6,107 @@ cc.Class({
 
 	properties: {
 
-		player_name:cc.Label,
-		head_icon:cc.Sprite,
-		player_id:cc.Label,
-		diamond_label:cc.Label,
-		gold_label:cc.Label,
+		player_name: cc.Label,
+		head_icon: cc.Sprite,
+		player_id: cc.Label,
+		diamond_label: cc.Label,
+		gold_label: cc.Label,
 
-		create_room_btn : cc.Button,
-		enter_room_btn : cc.Button,
+		create_room_btn: cc.Button,
+		enter_room_btn: cc.Button,
 		gold_room_btn: cc.Button,
 
-		kefu_btn:cc.Button,
-		rule_btn:cc.Button,
-		setting_btn:cc.Button,
-		back_btn:cc.Button,
+		kefu_btn: cc.Button,
+		rule_btn: cc.Button,
+		setting_btn: cc.Button,
+		back_btn: cc.Button,
 
-		create_table:cc.Node,
-		enter_room_table:cc.Node,
-		rule_table:cc.Node,
-		setting_table:cc.Node,
-		kefu_table:cc.Node,
-		record_table:cc.Node,
+		create_table: cc.Node,
+		enter_room_table: cc.Node,
+		rule_table: cc.Node,
+		setting_table: cc.Node,
+		kefu_table: cc.Node,
+		record_table: cc.Node,
 
 	},
 
 
-	setLobbyInfo(){
+	setLobbyInfo() {
 		this.player_name.string = Global.nickname;
-		this.setMoney();	
-		Global.setIcon(Global.headimgurl,this.head_icon);
+		this.player_id.string = "ID:" + Global.guid;
+		this.setMoney();
+		Global.setIcon(Global.headimgurl, this.head_icon);
 	},
 
-	setMoney(){
+	setMoney() {
 		this.diamond_label.string = Global.diamond;
 		this.gold_label.string = Global.gold;
 	},
 
-	onLoad () {
+	onLoad() {
 		window.callStaticMethod(0, 'cocosLog:lobby onloaded');
 		Global.lobby = this;
 		this.reset();
 		this.setLobbyInfo();
 	},
 
-	reset:function(){
-    	this.create_table.active = false;
+	reset: function () {
+		this.create_table.active = false;
 	},
 
-	start () {
+	start() {
 		Global.soundmanager.play_music();
-
-		if(Global.is_reconnection == 1)
-		{
-			if(Global.active_room_uid!=null)
-			{
-				Global.room_uid = Global.active_room_uid;
-				ServerConnection.enter_room();
-				Global.active_room_uid = null;
-			}
-			else
-		    	Global.appear_action(this.enter_room_table);
-			Global.is_reconnection = 0;
-		}else if(Global.is_reconnection == 2)
-		{
-			this.create_table.getComponent('CreateTable').show();
-			Global.is_reconnection = 0;
-		}
-
 	},
 
 
-    create_room_btn_onclick:function(){
+	create_room_btn_onclick: function () {
 		Global.soundmanager.play_button_click();
-
 		if (ServerConnection.svc_websocket == null) {
 			ServerConnection.svc_connectPlatform();
-			Global.is_reconnection = 2;
 		}
 		else
-            this.create_table.getComponent('CreateTable').show();
+			ServerConnection.check_in_room();
+		this.create_table.getComponent('CreateTable').show();
 	},
 
-	enter_room_btn_onclick:function(){
+	enter_room_btn_onclick: function () {
 		Global.soundmanager.play_button_click();
-
 		if (ServerConnection.svc_websocket == null) {
 			ServerConnection.svc_connectPlatform();
-			Global.is_reconnection = 1;
 		}
-		else {
-			Global.appear_action(this.enter_room_table);
-		}
-		
+		else
+			ServerConnection.check_in_room();
+		Global.appear_action(this.enter_room_table);
+
 	},
 
-	record_btn_onclick:function(){		
+
+	record_btn_onclick: function () {
 		Global.soundmanager.play_button_click();
 		this.record_table.getComponent('RecordTable').show();
 	},
 
-	rule_btn_onclick:function(){
+	rule_btn_onclick: function () {
 		Global.soundmanager.play_button_click();
 		this.rule_table.active = true;
 	},
 
-	kefu_btn_onclick:function(){
+	kefu_btn_onclick: function () {
 		Global.soundmanager.play_button_click();
 		this.kefu_table.active = true;
 	},
 
-	set_btn_onclick:function(){
+	set_btn_onclick: function () {
 		Global.soundmanager.play_button_click();
-        this.setting_table.active = true;
+		this.setting_table.active = true;
 	},
 
-	back_btn_onclick:function(){
+	back_btn_onclick: function () {
 		Global.soundmanager.play_button_click();
 		Global.loadScene("login");
 	},
 
-	deal_record:function(json){
+	deal_record: function (json) {
 		this.record_table.getComponent('RecordTable').deal_record(json);
 	}
 

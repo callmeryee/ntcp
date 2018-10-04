@@ -81,49 +81,37 @@ export default class BalanceManager extends cc.Component {
         this.node.active = false;
     }
 
-    public show_balance() {
-        if (this.data == null)
-            return;
+    public show_balance(data) {
+        this.data = data;
         this.set_jiangpai();
+        var balance = data.balance;
+        var score = data.score;
         var len = this.node_items.length;
-        var scores = [];
-        var balanceRate = this.data_card.balanceRate;
-        var maxUseCount = this.data_card.maxUseCount;
-        var canUseCount = this.data_card.canUseCount;
-        var maxScore = this.data_card.maxScore;
-        if (InGameManager.instance != null) {
-            InGameManager.instance.room_jushu_current = maxUseCount - canUseCount + 1;
-            InGameManager.instance.room_jushu_max = maxUseCount;
-        }
-        else if (RecordManager.instance != null) {
-            RecordManager.instance.room_jushu_current = maxUseCount - canUseCount + 1;
-            RecordManager.instance.room_jushu_max = maxUseCount;
-        }
         for (var i = 0; i < len; i++) {
             var data2 = null;
-            if (i < this.data.length) {
-                data2 = this.data[i];
+            if (i < balance.length) {
+                data2 = balance[i];
             }
             if (data2 != null) {
                 var player = null;
 
                 if (InGameManager.instance != null)
-                    player = InGameManager.instance.getPlayerByID(data2.uid);
+                    player = InGameManager.instance.getPlayerByID(data2.guid);
                 else if (RecordManager.instance != null)
-                    player = RecordManager.instance.getPlayerByID(data2.uid);
+                    player = RecordManager.instance.getPlayerByID(data2.guid);
 
                 var item = this.node_items[i];
                 item.active = true;
                 var info = item.getChildByName('info');
                 var icon = info.getChildByName('icon').getComponent(cc.Sprite);
                 var maizhuang = info.getChildByName('maizhuang');
-                maizhuang.active = player.is_maizhuang;
 
+                maizhuang.active = player.is_maizhuang;
                 icon.spriteFrame = player.icon.spriteFrame;
                 var name = info.getChildByName('name').getComponent(cc.Label);
                 name.string = player.name_label.string;
                 var node_hushu = item.getChildByName('hushu');
-                node_hushu.getChildByName('Label').getComponent(cc.Label).string = maxScore == 0 ? data2.hu + "胡" : (data2.hu > maxScore ? maxScore : data2.hu + '胡');
+                node_hushu.getChildByName('Label').getComponent(cc.Label).string = data2.hu;
                 var node_paixing = item.getChildByName('paixing');
                 var paixing_string = "";
                 if (data2.type1 && data2.type2) {
@@ -141,13 +129,6 @@ export default class BalanceManager extends cc.Component {
                     }
                 }
                 node_paixing.getChildByName('Label').getComponent(cc.Label).string = paixing_string;
-
-                var node_score = item.getChildByName('score');
-                var score_data = {};
-                score_data.hu = maxScore == 0 ? data2.hu : (data2.hu > maxScore ? maxScore : data2.hu);
-                score_data.player = player;
-                score_data.label = node_score.getChildByName('Label').getComponent(cc.Label);
-                scores.push(score_data);
 
                 var data_xi = [];
                 var data_di = [];
@@ -167,18 +148,25 @@ export default class BalanceManager extends cc.Component {
 
                 var win_type = item.getChildByName('win_type').getComponent(cc.Label);
                 win_type.string = "";
-                if (this.data_hu != null) {
-                    if (this.data_hu.uid == data2.uid) {
-                        if (this.data_hu.uid2 == data2.uid)
-                            win_type.string = "自摸";
+
+                if (data.loser) {
+                    if (data.loser == data2.guid) {
+                        win_type.string = "点炮";
                     }
-                    else {
-                        if (this.data_hu.uid2 == data2.uid)
-                            win_type.string = "点炮";
+                }
+                else {
+                    if (data.winner == data2.guid) {
+                        win_type.string = "自摸";
                     }
                 }
 
-
+                for (var j = 0; j < score.length; j++) {
+                    if (score[j].guid == data2.guid) {
+                        var node_score = item.getChildByName('score');
+                        node_score.getChildByName('Label').getComponent(cc.Label).string = score[j].score.toString();
+                        break;
+                    }
+                }
 
             }
             else {
@@ -186,37 +174,6 @@ export default class BalanceManager extends cc.Component {
                 this.node_items[i].active = false;
             }
         }
-
-        for (var i = 0; i < scores.length; i++) {
-            var ret = 0;
-            for (var j = 0; j < scores.length; j++) {
-                if (j != i) {
-                    var temp = scores[i].hu - scores[j].hu;
-                    var rate = balanceRate[0];
-                    if (scores[i].player.is_maizhuang) {
-                        if (scores[j].player.is_maizhuang) {
-                            rate = balanceRate[2];
-                        }
-                        else {
-                            rate = balanceRate[1];
-                        }
-                    }
-                    else {
-                        if (scores[j].player.is_maizhuang) {
-                            rate = balanceRate[1];
-                        }
-                        else {
-                            rate = balanceRate[0];
-                        }
-                    }
-
-                    ret += temp * rate;
-                }
-            }
-            scores[i].label.string = ret.toString();
-            scores[i].player.addScore(ret);
-        }
-
 
         this.node.active = true;
     }
@@ -312,32 +269,30 @@ export default class BalanceManager extends cc.Component {
     }
 
 
-
     continue_btn_onclick() {
-        if(InGameManager.instance!=null)
-        {
-            if (this.data_json.score != null) {       
-                this.hide_balance();    
-                InGameManager.instance.result.set_result_data(this.data_json);
+        if (InGameManager.instance != null) {
+            this.hide_balance();
+            if (this.data.total != null) {
+                InGameManager.instance.result.set_result_data(this.data.total);
                 InGameManager.instance.result.show_result();
             }
-            else
-            {
+            else {
+                if (InGameManager.instance != null)
                 InGameManager.instance.init_game();
+                InGameManager.instance.show_game_btns([1]);
             }
-        }        
-        else
-        {       
-            if (RecordManager.instance != null)
-            RecordManager.instance.continue_btn_onclick();
         }
- 
+        else {
+            if (RecordManager.instance != null)
+                RecordManager.instance.continue_btn_onclick();
+        }
+
     }
 
     back_btn_onclick() {
         if (InGameManager.instance != null)
-            Global.leave_room();
-            //ServerConnection.svc_closePlatform();
+            //Global.leave_room();
+            ServerConnection.svc_closePlatform();
         else if (RecordManager.instance != null)
             Global.leave_room();
     }

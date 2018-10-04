@@ -13,19 +13,27 @@ window.OnNativeResponse = function (type, msg) {
     window.callStaticMethod(0, msg);
     if (type == 1) {
         if (msg.error == 0) {
+            
+            Global.log("regist appid success");
+
             if (Global.authorize_after_registerApp) {
                 window.callStaticMethod(2, {});
             }
             else {
-                ServerConnection.login('123', Global.local_unionid, false);
+                ServerConnection.sendUnionID(Global.local_unionid);
             }
         }
     }
     else if (type == 2) {
         if (msg.error == 0) {
+            var temp = JSON.stringify(msg);
+            Global.log("get code success,msg:" + temp);
             var code = msg.msg.code;
-            if (code != null) {
-                ServerConnection.login(code, '123', true);
+            Global.log("get code success,code:" + code);
+            if(code!=null)
+            {
+                Global.log("get code success,code:" + code);
+                ServerConnection.sendCode(code);
             }
         }
     }
